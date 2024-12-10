@@ -79,14 +79,14 @@ void main()
         vec4 sobel = vec4(gRValue, gGValue, gBValue, 1.f);
         fragColor = grayscale(sobel);
 
-        // float intensityThreshold = 0.6;
+         float intensityThreshold = 0.4;
 
-        // if (sobel.r > intensityThreshold) {
-        //     // add black outline if above intensity level
-        //     fragColor = vec4(0.0, 0.0, 0.0, 1.0);
-        //     } else {
-        //     fragColor = texture(texture_sampler, P);
-        // }
+         if (sobel.r > intensityThreshold) {
+             // add black outline if above intensity level
+             fragColor = vec4(0.0, 0.0, 0.0, 1.0);
+             } else {
+             fragColor = texture(texture_sampler, P);
+         }
     }
     if (pixel_flag) {
         fragColor = vec4(1.0) - fragColor;

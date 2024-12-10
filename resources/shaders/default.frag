@@ -25,6 +25,12 @@ uniform vec4 cd;
 uniform vec4 cs;
 uniform int cn;
 
+const int diffuse_color_levels = 4;
+const float diffuse_scale_factor = 1.f/diffuse_color_levels;
+
+const int specular_color_levels = 2;
+const float specular_scale_factor = 1.f / specular_color_levels;
+
 uniform vec4 cam;
 void main() {
     vec3 normalized_wnorm = normalize(world_normal);
@@ -86,9 +92,15 @@ void main() {
             dot_ri_cam = clamp(dot_ri_cam, 0.f, 1.f);
             for (int j = 0; j < 3; j++) {
                 // diffuse + specular
-                float diffuse = cd[j] * kd * dot_li_normal;
+
+                // for discretizing diffuse color
+                float diffuseFactor = ceil(dot_li_normal*diffuse_color_levels) * diffuse_scale_factor;
+                float diffuse = cd[j] * kd * dot_li_normal * diffuseFactor;
+
                 float powpow = (cn <= 0) ? 1.f : pow(dot_ri_cam, cn);
-                float specular = ks * cs[j] * powpow;
+                // for discretizing specular color
+                float specularFactor = ceil(powpow*specular_color_levels) * specular_scale_factor;
+                float specular = ks * cs[j] * specularFactor;
                 fragColor[j] += attn_val * spot * lightColor[i][j] * (diffuse + specular);
             }
         }

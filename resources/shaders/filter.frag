@@ -8,7 +8,38 @@ uniform bool kernel_flag;
 uniform int screen_w;
 uniform int screen_h;
 
+uniform bool outline_flag;
+
+uniform float xKernel[9];
+uniform float yKernel[9];
+uniform float simpleKernel[9];
+
 out vec4 fragColor;
+
+vec4 grayscale(vec4 color) {
+    float intensity = color.r*0.299+color.g*0.587+color.b*0.114;
+    intensity = clamp(intensity, 0.f, 1.f);
+    return vec4(intensity, intensity, intensity, 1.f);
+}
+
+vec4 sobelConvolve(float[9] kernel) {
+    vec4 sum = vec4(0.0);
+
+    for (int c = -1; c < 2; c++) {
+        float u = uv[0] + c/screen_w;
+        u = clamp(u, 0.f, 1.f);
+
+        for (int r = -1; r < 2; r++) {
+
+            float v = uv[1] + r/screen_h;
+            v = clamp(v, 0.f, 1.f);
+
+            int kernelIndex = (r+1) * 3 + (c+1);
+            sum += kernel[kernelIndex]*texture(texture_sampler, vec2(u, v));
+        }
+    }
+    return sum;
+}
 
 void main()
 {
@@ -31,7 +62,35 @@ void main()
         }
         fragColor = newFragColor;
     }
+
     if (pixel_flag) {
         fragColor = vec4(1.0) - fragColor;
+    }
+
+    if (outline_flag) {
+
+        vec4 sobelEdgeX = sobelConvolve(xKernel);
+        vec4 sobelEdgeY = sobelConvolve(yKernel);
+
+        float gRValue = sqrt(sobelEdgeX.r*sobelEdgeX.r + sobelEdgeY.r*sobelEdgeY.r);
+        float gGValue = sqrt(sobelEdgeX.g*sobelEdgeX.g + sobelEdgeY.g*sobelEdgeY.g);
+        float gBValue = sqrt(sobelEdgeX.b*sobelEdgeX.b + sobelEdgeY.b*sobelEdgeY.b);
+
+        gRValue = clamp(gRValue, 0.f, 1.f);
+        gGValue = clamp(gGValue, 0.f, 1.f);
+        gBValue = clamp(gBValue, 0.f, 1.f);
+
+        vec4 sobel = vec4(gRValue, gGValue, gBValue, 1.f);
+        fragColor = grayscale(sobel);
+
+
+//        float intensityThreshold = 0.6;
+
+//        if (sobel.r > intensityThreshold) {
+//            // add black outline if above intensity level
+//            fragColor = vec4(0.0, 0.0, 0.0, 1.0);
+//            } else {
+//            fragColor = texture(texture_sampler, P);
+//        }
     }
 }

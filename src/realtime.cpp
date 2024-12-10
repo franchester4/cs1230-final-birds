@@ -101,6 +101,20 @@ void Realtime::initializeGL() {
     auto sampler_loc = glGetUniformLocation(m_filter_shader, "texture_sampler");
     glUniform1i(sampler_loc, 0);
 
+    // passing in kernel uniforms for sobel filter
+    float sobelKernelX[9] = {-1.f, 0.f, 1.f, -2.f, 0.f, 2.f, -1.f, 0.f, 1.f};
+    GLint sobelXLoc = glGetUniformLocation(m_filter_shader, "xKernel");
+    glUniform1fv(sobelXLoc, 9, sobelKernelX);
+
+    float sobelKernelY[9] = {-1.f, -2.f, -1.f, 0.f, 0.f, 0.f, 1.f, 2.f, 1.f};
+    GLint sobelYLoc = glGetUniformLocation(m_filter_shader, "yKernel");
+    glUniform1fv(sobelYLoc, 9, sobelKernelY);
+
+    float simpleKernel[9] = {0.f, 0.f, 0.f, 0.f, 2.f, 0.f, 0.f, 0.f, 0.f};
+    GLint simpleLoc = glGetUniformLocation(m_filter_shader, "simpleKernel");
+    glUniform1fv(simpleLoc, 9, simpleKernel);
+
+
     glUseProgram(0);
 
     std::vector<GLfloat> fullscreen_quad_data =
@@ -137,6 +151,7 @@ void Realtime::initializeGL() {
     glBindVertexArray(0);
 
     makeFBO();
+
 }
 
 void Realtime::makeFBO(){
@@ -326,6 +341,10 @@ void Realtime::paintTexture(GLuint texture){
     glUniform1i(pixel_loc, cur_pixel);
     auto kernel_loc = glGetUniformLocation(m_filter_shader, "kernel_flag");
     glUniform1i(kernel_loc, cur_kernel);
+
+    // for toon shading outline
+    auto outline_loc = glGetUniformLocation(m_filter_shader, "outline_flag");
+    glUniform1i(outline_loc, settings.extraCredit1);
 
     auto w_loc = glGetUniformLocation(m_filter_shader, "screen_w");
     glUniform1i(w_loc, m_screen_width);

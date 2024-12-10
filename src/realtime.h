@@ -68,6 +68,7 @@ private:
 
     float cur_pixel;
     float cur_kernel;
+    bool cur_outline;
 
     // glsl specific
     GLuint m_shader;
@@ -116,7 +117,4 @@ private:
     void clearBuffers();
     // Camera
     Camera cam;
-
-
-
 };

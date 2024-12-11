@@ -61,6 +61,8 @@ void Realtime::initializeGL() {
     m_timer = startTimer(1000/60);
     m_elapsedTimer.start();
 
+    bezier = Bezier();
+
     // Initializing GL.
     // GLEW (GL Extension Wrangler) provides access to OpenGL functions.
     glewExperimental = GL_TRUE;
@@ -200,6 +202,8 @@ void Realtime::processRendered() {
         attn[i] = rendered.lights[i].function;
     }
     cam.setCamera(rendered.cameraData, cur_near, cur_far, size().width(), size().height());
+    bezier.init(cam.pos, cam.look);
+    // bezier.dir = glm::normalize(cam.look);
 
     // generate buffers
     int num = shape_metadata.size();
@@ -458,33 +462,33 @@ glm::mat3 rodrigues(glm::vec3 r) {
 
 void Realtime::mouseMoveEvent(QMouseEvent *event) {
     if (m_mouseDown) {
-        float speed = 0.015f;
-        int posX = event->position().x();
-        int posY = event->position().y();
-        int deltaX = posX - m_prev_mouse_pos.x;
-        int deltaY = posY - m_prev_mouse_pos.y;
-        m_prev_mouse_pos = glm::vec2(posX, posY);
+        // float speed = 0.015f;
+        // int posX = event->position().x();
+        // int posY = event->position().y();
+        // int deltaX = posX - m_prev_mouse_pos.x;
+        // int deltaY = posY - m_prev_mouse_pos.y;
+        // m_prev_mouse_pos = glm::vec2(posX, posY);
 
-        // Use deltaX and deltaY here to rotate
+        // // Use deltaX and deltaY here to rotate
 
-        // deltaX
-        glm::vec3 r = (deltaX * speed) * glm::vec3(0, 1, 0);
-        glm::mat3 rot_mat = rodrigues(r);
-        // cam.pos = glm::vec4(rot_mat * glm::vec3(cam.pos), 1.f);
-        cam.look = glm::vec4(rot_mat * glm::vec3(cam.look), 0.f);
-        cam.up = glm::vec4(rot_mat * glm::vec3(cam.up), 0.f);
-        cam.setViewMatrix();
-        cam.setProjMatrix();
-        cam.setPV();
+        // // deltaX
+        // glm::vec3 r = (deltaX * speed) * glm::vec3(0, 1, 0);
+        // glm::mat3 rot_mat = rodrigues(r);
+        // // cam.pos = glm::vec4(rot_mat * glm::vec3(cam.pos), 1.f);
+        // cam.look = glm::vec4(rot_mat * glm::vec3(cam.look), 0.f);
+        // // cam.up = glm::vec4(rot_mat * glm::vec3(cam.up), 0.f);
+        // cam.setViewMatrix();
+        // cam.setProjMatrix();
+        // cam.setPV();
 
-        // deltaY
-        glm::vec3 perp = (deltaY * speed) * glm::normalize(glm::cross(glm::vec3(cam.look), glm::vec3(cam.up)));
-        glm::mat3 rot_mat2 = rodrigues(perp);
-        cam.look = glm::vec4(rot_mat2 * glm::vec3(cam.look), 0.f);
-        cam.up = glm::vec4(rot_mat2 * glm::vec3(cam.up), 0.f);
-        cam.setViewMatrix();
-        cam.setProjMatrix();
-        cam.setPV();
+        // // deltaY
+        // glm::vec3 perp = (deltaY * speed) * glm::normalize(glm::cross(glm::vec3(cam.look), glm::vec3(cam.up)));
+        // glm::mat3 rot_mat2 = rodrigues(perp);
+        // cam.look = glm::vec4(rot_mat2 * glm::vec3(cam.look), 0.f);
+        // // cam.up = glm::vec4(rot_mat2 * glm::vec3(cam.up), 0.f);
+        // cam.setViewMatrix();
+        // cam.setProjMatrix();
+        // cam.setPV();
 
         update(); // asks for a PaintGL() call to occur
     }
@@ -493,45 +497,57 @@ void Realtime::mouseMoveEvent(QMouseEvent *event) {
 void Realtime::timerEvent(QTimerEvent *event) {
     int elapsedms   = m_elapsedTimer.elapsed();
     float deltaTime = elapsedms * 0.001f;
+
+    float t = deltaTime * 0.2;
     m_elapsedTimer.restart();
+    float denom = 10.f;
+    float mx = M_PI / 5.f;
+
+    // move the camera along cur bezier
+    auto cur_mat = bezier.bezierCoeffs();
+
+    // i have a 4 x 3, take transpose for 3 x 4
+    auto new_pos = glm::transpose(cur_mat) * glm::vec4(pow(t, 3), pow(t, 2), t, 1);
+
+    // what is the gradient?
+    //
+    auto new_grad = glm::transpose(cur_mat) * glm::vec4(3 * pow(t, 2), 2 * t, 1, 0);
+
+    new_grad = glm::normalize(new_grad);
+
+    cam.pos = glm::vec4(new_pos, 1.f);
+    cam.look = glm::vec4(new_grad, 0.f);
+
+    cam.setViewMatrix();
+    cam.setProjMatrix();
+    cam.setPV();
+
+
+    bezier.pts[0] = new_pos;
+    bezier.dir = glm::normalize(cam.look);
+
+    float theta1 = 0.f;
+    float theta2 = 0.f;
 
     // Use deltaTime and m_keyMap here to move around
-    if (m_keyMap[Qt::Key_W]) { // translate look
-        cam.pos += 5.0f * deltaTime * glm::normalize(cam.look);
-        cam.setViewMatrix();
-        cam.setProjMatrix();
-        cam.setPV();
+    if (m_keyMap[Qt::Key_S]) { // translate look
+        theta2 +=  fmin(fmax(deltaTime * M_PI / denom, 0.f), mx);
     }
-    if (m_keyMap[Qt::Key_S]) { // translate look backwards
-        cam.pos += 5.0f * deltaTime * glm::normalize(-cam.look);
-        cam.setViewMatrix();
-        cam.setProjMatrix();
-        cam.setPV();
-    }
-    if (m_keyMap[Qt::Key_A]) {
-        cam.pos -= 5.0f * deltaTime * glm::vec4(glm::normalize(glm::cross(glm::vec3(cam.look), glm::vec3(cam.up))), 0.0f);
-        cam.setViewMatrix();
-        cam.setProjMatrix();
-        cam.setPV();
+    if (m_keyMap[Qt::Key_W]) { // translate look backwards
+        // theta2 = - deltaTime * M_PI / denom;
+        theta2 += fmin(fmax(-deltaTime * M_PI / denom, -mx), 0.f);
     }
     if (m_keyMap[Qt::Key_D]) {
-        cam.pos += 5.0f * deltaTime * glm::vec4(glm::normalize(glm::cross(glm::vec3(cam.look), glm::vec3(cam.up))), 0.0f);
-        cam.setViewMatrix();
-        cam.setProjMatrix();
-        cam.setPV();
+        // theta1 = deltaTime * M_PI / denom;
+        theta1 += fmin(fmax(deltaTime * M_PI / denom, 0.f), mx);
+
     }
-    if (m_keyMap[Qt::Key_Control]) {
-        cam.pos += 5.0f * deltaTime * glm::vec4(0.f, -1.f, 0.f, 0.f);
-        cam.setViewMatrix();
-        cam.setProjMatrix();
-        cam.setPV();
+    if (m_keyMap[Qt::Key_A]) {
+        // theta1 = deltaTime * -M_PI / denom;
+        theta1 += fmin(fmax(-deltaTime * M_PI / denom, -mx), 0.f);
     }
-    if (m_keyMap[Qt::Key_Space]) {
-        cam.pos += 5.0f * deltaTime * glm::vec4(0.f, 1.f, 0.f, 0.f);
-        cam.setViewMatrix();
-        cam.setProjMatrix();
-        cam.setPV();
-    }
+
+    bezier.updatePoints(theta1, theta2);
 
     update(); // asks for a PaintGL() call to occur
 }

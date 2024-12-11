@@ -14,7 +14,7 @@
 #include <QTimer>
 #include "utils/sceneparser.h"
 #include "utils/shapemeta.h"
-
+#include "utils/bezier.h"
 
 
 class Realtime : public QOpenGLWidget
@@ -80,6 +80,8 @@ private:
     int m_fbo_height;
     int m_screen_width;
     int m_screen_height;
+
+    Bezier bezier;
 
 
     GLuint m_fullscreen_vbo;

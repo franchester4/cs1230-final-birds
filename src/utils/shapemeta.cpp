@@ -37,7 +37,7 @@ std::vector<float> ShapeMeta::getVBOData() {
 void ShapeMeta::setVBO_VAO() {
     std::vector<GLfloat> v_data = getVBOData();
 
-    num_v = v_data.size();
+    num_v = v_data.size() / 6;
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBindVertexArray(vao);
 

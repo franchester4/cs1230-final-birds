@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 
 # Sets project name
-project(birds_at_brown LANGUAGES CXX C)
+project(birds_at_brown2 LANGUAGES CXX C)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
@@ -49,6 +49,7 @@ add_executable(${PROJECT_NAME}
     src/utils/shapes/cone.h src/utils/shapes/cone.cpp
     src/utils/shapes/cylinder.h src/utils/shapes/cylinder.cpp
     src/camera.h src/camera.cpp
+    src/utils/bezier.h src/utils/bezier.cpp
 
 )
 

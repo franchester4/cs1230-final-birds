@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 
 # Sets project name
-project(birds_at_brown LANGUAGES CXX C)
+project(birds_at_brown2 LANGUAGES CXX C)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
@@ -41,14 +41,16 @@ add_executable(${PROJECT_NAME}
     src/utils/sceneparser.h
     src/utils/shaderloader.h
     src/utils/aspectratiowidget/aspectratiowidget.hpp
-    src/utils/shapemeta.h src/utils/shapemeta.cpp
+    src/shapes/sphere.h src/shapes/sphere.cpp
 
-    src/utils/shapes/sphere.h src/utils/shapes/sphere.cpp
 
-    src/utils/shapes/cube.h src/utils/shapes/cube.cpp
-    src/utils/shapes/cone.h src/utils/shapes/cone.cpp
-    src/utils/shapes/cylinder.h src/utils/shapes/cylinder.cpp
+    src/shapes/cylinder.h src/shapes/cylinder.cpp
+    src/shapes/cone.h src/shapes/cone.cpp
+    src/shapes/cube.h src/shapes/cube.cpp
     src/camera.h src/camera.cpp
+    src/debug.h src/debug.cpp
+    src/setup.h src/setup.cpp
+
 
 )
 
@@ -57,8 +59,6 @@ add_subdirectory(glm)
 
 # GLEW: this creates its library and allows you to `#include "GL/glew.h"`
 add_library(StaticGLEW STATIC glew/src/glew.c
-
-
 )
 include_directories(${PROJECT_NAME} PRIVATE glew/include)
 
@@ -79,8 +79,8 @@ qt6_add_resources(${PROJECT_NAME} "Resources"
     FILES
         resources/shaders/default.frag
         resources/shaders/default.vert
-        resources/shaders/filter.frag
         resources/shaders/filter.vert
+        resources/shaders/filter.frag
 )
 
 # GLEW: this provides support for Windows (including 64-bit)
@@ -100,3 +100,4 @@ endif()
 if (APPLE)
   set(CMAKE_CXX_FLAGS "-Wno-deprecated-volatile")
 endif()
+

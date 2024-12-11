@@ -1,29 +1,33 @@
 #version 330 core
 
-in vec3 world_pos;
-in vec3 world_normal;
+// "in" variables for the world-space position and normal, received post-interpolation from the vertex shader
+in vec3 worldPos;
+in vec3 worldNorm;
 
 out vec4 fragColor;
 
-uniform int lightType[8];
-uniform vec4 lightColor[8];
-uniform vec4 lightPos[8];
-uniform vec4 lightDir[8];
-uniform float lightPenumbra[8];
-uniform float lightAngle[8];
+uniform float k_a;
 
-uniform vec3 attn[8];
+uniform float k_d;
 
-uniform int numLights;
+uniform float k_s;
+uniform float shininess;
 
-uniform float ka;
-uniform float kd;
-uniform float ks;
+uniform vec3 material_a;
+uniform vec3 material_d;
+uniform vec3 material_s;
 
-uniform vec4 ca;
-uniform vec4 cd;
-uniform vec4 cs;
-uniform int cn;
+uniform vec4 cameraPos;
+
+uniform vec3 lightDirections[8];
+uniform vec3 lightPositions[8];
+uniform vec3 lightColors[8];
+uniform int lightTypes[8];
+uniform vec3 lightFunctions[8];
+uniform float lightAngles[8];
+uniform float lightPenumbras[8];
+
+uniform float numLights;
 
 const int diffuse_color_levels = 4;
 const float diffuse_scale_factor = 1.f/diffuse_color_levels;
@@ -31,78 +35,76 @@ const float diffuse_scale_factor = 1.f/diffuse_color_levels;
 const int specular_color_levels = 2;
 const float specular_scale_factor = 1.f / specular_color_levels;
 
-uniform vec4 cam;
 void main() {
-    vec3 normalized_wnorm = normalize(world_normal);
-    vec3 camDir = normalize(cam.xyz - world_pos);
-    // vec3 camDir = camDirection4.xyz;
 
-    // ambient
+    vec3 norm = normalize(worldNorm);
+
+    vec3 dirToLight;
+
+    float attenuation;
+
     fragColor = vec4(0.0);
-    fragColor[3] = 1.0;
-    for (int i = 0; i < 3; i++) {
-        // ambient
-        fragColor[i] += ka * ca[i];
-    }
+
+    // add ambient
+    fragColor += vec4(k_a*material_a, 1.f);
 
     for (int i = 0; i < numLights; i++) {
-        // l_i
-        vec3 l_i = vec3(0.0);
-        if (lightType[i] == 1) { // directional
-            l_i = normalize(-1.f * lightDir[i].xyz);
-        }
-        else {
-            l_i = normalize(lightPos[i].xyz - world_pos);
+
+        vec4 lighting = vec4(0.0);
+
+        // for directional lights
+        if (lightTypes[i] == 1) {
+            dirToLight = -normalize(lightDirections[i]);
+            attenuation = 1.f;
+        } else {
+            // for point and spot lights
+            dirToLight = normalize(lightPositions[i]-worldPos);
+            float distance = length((lightPositions[i]-worldPos));
+            attenuation = min(1.f, 1.f/(lightFunctions[i].x+lightFunctions[i].y*distance+lightFunctions[i].z*distance*distance));
         }
 
-        // attn
-        float attn_val = 1.0f;
-        if (lightType[i] != 1) { // spot or point
-            float distance = 0;
-            for (int j = 0; j < 3; j++) {
-                distance += pow(lightPos[i][j] - world_pos[j], 2);
-            }
-            distance = sqrt(distance);
-            float denom = attn[i][0] + distance * attn[i][1] + pow(distance, 2) * attn[i][2];
-            attn_val = min(1.0f, 1.0f / denom);
+        // add diffuse
+        // for discretizing diffuse color
+        float diffuseFactor = ceil(clamp(dot(norm, dirToLight), 0.f, 1.f)*diffuse_color_levels) * diffuse_scale_factor;
+
+        lighting += vec4(attenuation*lightColors[i]*k_d*material_d*diffuseFactor, 1.f);
+
+        if (shininess != 0) {
+            vec3 reflectedVec = normalize(reflect(-dirToLight, norm));
+            vec3 dirToCam = normalize(vec3(cameraPos) - worldPos);
+
+            // add specular
+            float rawSpecular = pow(clamp(dot(reflectedVec, dirToCam), 0.f, 1.f), shininess);
+            // for discretizing specular color
+            float specularFactor = ceil(rawSpecular*specular_color_levels) * specular_scale_factor;
+
+            lighting += vec4(attenuation*lightColors[i]*k_s*material_s*specularFactor, 1.f);
         }
 
-        // spot
-        float spot = 1.0f;
-        if (lightType[i] == 2) { // spot
-            float x = acos(dot(normalize(lightDir[i].xyz), normalize(-l_i)));
-            float inner = lightAngle[i] - lightPenumbra[i];
+        // if spot light, calculate and multiply by fall off
+        if (lightTypes[i] == 2) {
+
+            float falloff;
+
+            vec3 normLightDir = normalize(lightDirections[i]);
+            float x = acos(dot(normLightDir, -dirToLight));
+
+            float outer = lightAngles[i];
+            float inner = outer - lightPenumbras[i];
+
             if (x <= inner) {
-                spot = 1.0f;
+                falloff = 1.f;
+            } else if (x > inner && x <= outer) {
+                float penumbraRatio = (x-inner)/(outer-inner);
+                falloff = 1.f - (-2.f*penumbraRatio*penumbraRatio*penumbraRatio + 3.f*penumbraRatio*penumbraRatio);
+            } else {
+                falloff = 0.f;
             }
-            else if (x > lightAngle[i]) {
-                spot = 0.0f;
-            }
-            else {
-                float delta = x - inner;
-                float falloff = -2.0 * pow(delta / lightPenumbra[i], 3) + 3 * pow(delta / lightPenumbra[i], 2);
-                spot = (1.0f - falloff);
-            }
-        }
-        float dot_li_normal = dot(normalized_wnorm, l_i);
-        dot_li_normal = clamp(dot_li_normal, 0.f, 1.f);
-        if (dot_li_normal > 0.0) {
-            vec3 r_i = reflect(-1.f * l_i, normalized_wnorm);
-            float dot_ri_cam = dot(r_i, camDir);
-            dot_ri_cam = clamp(dot_ri_cam, 0.f, 1.f);
-            for (int j = 0; j < 3; j++) {
-                // diffuse + specular
 
-                // for discretizing diffuse color
-                float diffuseFactor = ceil(dot_li_normal*diffuse_color_levels) * diffuse_scale_factor;
-                float diffuse = cd[j] * kd * dot_li_normal * diffuseFactor;
+            fragColor += lighting*falloff;
 
-                float powpow = (cn <= 0) ? 1.f : pow(dot_ri_cam, cn);
-                // for discretizing specular color
-                float specularFactor = ceil(powpow*specular_color_levels) * specular_scale_factor;
-                float specular = ks * cs[j] * specularFactor;
-                fragColor[j] += attn_val * spot * lightColor[i][j] * (diffuse + specular);
-            }
+        } else {
+            fragColor += lighting;
         }
     }
 }

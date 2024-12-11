@@ -460,7 +460,7 @@ void Realtime::updateCameraSettings() {
 void Realtime::sceneChanged(bool first_parse) {
     renderData = *new RenderData;
 
-    SceneParser::parse("/Users/anthony/Documents/2024-2025 Brown Stuff/Fall 2024/Graphics/cs1230-final-birds/resources/birthday_bird.json", renderData);
+    SceneParser::parse(":/resources/birthday_bird.json", renderData);
     camera = Camera(renderData.cameraData);
     updateCameraSettings();
 

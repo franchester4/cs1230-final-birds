@@ -1,7 +1,8 @@
 #pragma once
 
-#include "utils/scenedata.h"
 #include <glm/glm.hpp>
+
+#include "utils/scenedata.h"
 
 // A class representing a virtual camera.
 
@@ -10,33 +11,53 @@
 // If you decide to make your own design, feel free to delete these as TAs won't rely on them to grade your assignments.
 
 class Camera {
+
+private:
+    SceneCameraData cameraData;
+
 public:
-    void setCamera(SceneCameraData cam, float near_, float far_, int width, int height);
-    glm::vec4 pos;
-    glm::vec4 look;
-    glm::vec4 up;
 
-    glm::mat4 viewMatrix; //world to cam
-    glm::mat4 projMatrix; // cam to clip
-    glm::mat4 pv;
-
-    // can update this
-    float near;
-    float far;
-
-    float heightAngle; // The height angle of the camera in RADIANS
-
-    float aperture;    // Only applicable for depth of field
-    float focalLength; // Only applicable for depth of field
-
-    float aspect; // w / h
-
-    int w;
-    int h;
+    Camera();
 
     void setViewMatrix();
-    void setProjMatrix();
-    void setPV();
-    void updateNearFar(float near_, float far_);
+    void setWorldPos();
+    void setInverseViewMatrix();
 
+    Camera(const SceneCameraData &data);
+
+    // Returns the view matrix for the current camera settings.
+    // You might also want to define another function that return the inverse of the view matrix.
+    glm::mat4 getViewMatrix() const;
+
+    glm::mat4 getInverseViewMatrix() const;
+
+    // Returns the aspect ratio of the camera.
+    float getAspectRatio() const;
+
+    // Returns the height angle of the camera in RADIANS.
+    float getHeightAngle() const;
+
+    // Returns the focal length of this camera.
+    // This is for the depth of field extra-credit feature only;
+    // You can ignore if you are not attempting to implement depth of field.
+    float getFocalLength() const;
+
+    // Returns the focal length of this camera.
+    // This is for the depth of field extra-credit feature only;
+    // You can ignore if you are not attempting to implement depth of field.
+    float getAperture() const;
+
+    glm::mat4 setProjectionMatrix(float aspectRatio, float far, float near);
+
+    glm::vec3 getWorldPos();
+
+    void moveForward(float deltaTime);
+    void moveBackward(float deltaTime);
+    void moveLeft(float deltaTime);
+    void moveRight(float deltaTime);
+    void moveUp(float deltaTime);
+    void moveDown(float deltaTime);
+    void rotateX(float deltaX);
+    void rotateY(float deltaY);
 };
+

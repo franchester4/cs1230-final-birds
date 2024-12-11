@@ -1,21 +1,20 @@
 #pragma once
 
 // Defined before including GLEW to suppress deprecation messages on macOS
+#include "camera.h"
+#include "setup.h"
+#include "utils/sceneparser.h"
 #ifdef __APPLE__
 #define GL_SILENCE_DEPRECATION
 #endif
 #include <GL/glew.h>
 #include <glm/glm.hpp>
-#include "camera.h"
+
 #include <unordered_map>
 #include <QElapsedTimer>
 #include <QOpenGLWidget>
 #include <QTime>
 #include <QTimer>
-#include "utils/sceneparser.h"
-#include "utils/shapemeta.h"
-
-
 
 class Realtime : public QOpenGLWidget
 {
@@ -42,9 +41,12 @@ private:
     void mouseMoveEvent(QMouseEvent *event) override;
     void timerEvent(QTimerEvent *event) override;
 
-    void makeFBO();
-    void paintTexture(GLuint texture);
-    void paintScene();
+    GLuint m_shader;     // Stores id of shader program
+
+    glm::vec3 cameraWorldPos;
+
+    void updateCameraSettings();
+
     // Tick Related Variables
     int m_timer;                                        // Stores timer which attempts to run ~60 times per second
     QElapsedTimer m_elapsedTimer;                       // Stores timer which keeps track of actual time between frames
@@ -57,66 +59,41 @@ private:
     // Device Correction Variables
     double m_devicePixelRatio;
 
-    // Current Settings
-    std::string cur_scene;
+    Setup setup;
 
-    int cur_p1;
-    int cur_p2;
+    glm::vec4 m_lightPos; // The world-space position of the point light
 
-    float cur_near;
-    float cur_far;
+    RenderData renderData;
 
-    float cur_pixel;
-    float cur_kernel;
+    glm::mat4 m_model = glm::mat4(1);
+    glm::mat4 m_view  = glm::mat4(1);
+    glm::mat4 m_proj  = glm::mat4(1);
 
-    // glsl specific
-    GLuint m_shader;
+    Camera camera;
 
-    // filter fbo stuff
-    GLuint m_filter_shader;
+    GLuint m_fullscreen_vbo;
+    GLuint m_fullscreen_vao;
+
+    GLuint m_texture_shader;
+
     GLuint m_defaultFBO;
-
+    GLuint m_fbo;
+    GLuint m_fbo_texture;
+    GLuint m_fbo_renderbuffer;
     int m_fbo_width;
     int m_fbo_height;
     int m_screen_width;
     int m_screen_height;
 
+    void makeFBO();
 
-    GLuint m_fullscreen_vbo;
-    GLuint m_fullscreen_vao;
-    GLuint m_fbo;
-    GLuint m_fbo_texture;
-    GLuint m_fbo_renderbuffer;
+    void paintGeometry();
+    void paintTexture(GLuint texture, bool isPixelFilter, bool isKernelFilter, bool isExtraCredit1, bool isExtraCredit2, bool isExtraCredit3);
 
-    // Lights
-    int lightType[8];
-    glm::vec4 lightColor[8];
-    glm::vec4 lightPos[8];
-    glm::vec4 lightDir[8];
+    std::vector<float> sharpenKernel;
+    std::vector<float> sobelKernelX;
+    std::vector<float> sobelKernelY;
 
-    // RADIANS
-    float lightPenumbra[8];
-    float lightAngle[8];
-
-    glm::vec3 attn[8];
-
-    int numLights;
-
-    // Shapes
-    std::vector<ShapeMeta>shape_metadata;
-
-    // Rendered Data
-    RenderData rendered;
-    void setCurrentSettings();
-    void updateTessellations();
-    void processRendered();
-
-    std::vector<GLuint>vboVec;
-    std::vector<GLuint>vaoVec;
-    void clearBuffers();
-    // Camera
-    Camera cam;
-
-
-
+    float aspectRatio;
 };
+

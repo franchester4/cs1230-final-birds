@@ -1,87 +1,229 @@
+#include <stdexcept>
 #include "camera.h"
 
-void Camera::setCamera(SceneCameraData cam, float near_, float far_, int width, int height) {
-    pos = cam.pos;
-    look = cam.look;
-    up = cam.up;
+#include <glm/glm.hpp>
 
-    near = near_;
-    far = far_;
+#include "glm/ext/matrix_clip_space.hpp"
+#include "settings.h"
+#include <iostream>
 
-    w = width;
-    h = height;
-    aspect = w * 1.0 / h;
+glm::mat4 viewMatrix;
+glm::mat4 inverseViewMatrix;
+glm::vec4 camWorldPos;
 
-    heightAngle = cam.heightAngle;
+Camera::Camera() {
 
-
-    setViewMatrix();
-    setProjMatrix();
-    setPV();
 }
 
-void Camera::updateNearFar(float near_, float far_) {
-    near = near_;
-    far = far_;
-    setProjMatrix();
-    setPV();
+Camera::Camera(const SceneCameraData &data) {
+    cameraData = data;
+    this->setViewMatrix();
+    this->setInverseViewMatrix();
+    this->setWorldPos();
 }
 
+/**
+ * @brief creates view matrix given camera data, called when camera is initialized
+ */
 void Camera::setViewMatrix() {
-    glm::vec3 p = {pos[0], pos[1], pos[2]};
-    glm::vec3 l = {look[0], look[1], look[2]};
-    glm::vec3 up3 = {up[0], up[1], up[2]};
 
-    glm::vec3 w = -normalize(l);
-    glm::vec3 v = normalize(up3 - glm::dot(up3, w) * w);
+    glm::vec3 pos = cameraData.pos;
+    glm::vec3 look = cameraData.look;
+    glm::vec3 up = cameraData.up;
+
+    glm::vec3 w = -normalize(look);
+    glm::vec3 v = normalize(up - glm::dot(up, w)*w);
     glm::vec3 u = glm::cross(v, w);
 
-    glm::mat4 m_trans = glm::mat4(1.0f);
-    m_trans[3][0] = -pos[0];
-    m_trans[3][1] = -pos[1];
-    m_trans[3][2] = -pos[2];
+    glm::mat4 rotationMat = {u[0], v[0], w[0], 0.f, u[1], v[1], w[1], 0.f, u[2], v[2], w[2], 0.f, 0.f, 0.f, 0.f, 1.f};
+    glm::mat4 translationMat = {1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, -pos[0], -pos[1], -pos[2], 1.f};
 
-    glm::mat4 m_rot(1.0f);
-    m_rot[0][0] = u[0];
-    m_rot[1][0] = u[1];
-    m_rot[2][0] = u[2];
-    m_rot[0][1] = v[0];
-    m_rot[1][1] = v[1];
-    m_rot[2][1] = v[2];
-    m_rot[0][2] = w[0];
-    m_rot[1][2] = w[1];
-    m_rot[2][2] = w[2];
-
-    viewMatrix =  m_rot * m_trans;
+    viewMatrix = rotationMat*translationMat;
 }
 
-void Camera::setProjMatrix() {
-    glm::mat4 clip(1.f);
-    clip[2][2] = -2.f;
-    clip[3][2] = -1.f;
-
-    float c = -near / far;
-
-    glm::mat4 unhinge(1.f);
-    unhinge[2][2] = 1.f / (1.f + c);
-    unhinge[3][2] = -1.f * c / (1.f + c);
-    unhinge[2][3] = -1.f;
-    unhinge[3][3] = 0.f;
-
-    float h2 = tan(heightAngle / 2);
-    float w2 = aspect * h2;
-
-    glm::mat4 scaleMat(1.f);
-    scaleMat[0][0] = 1.f / (far * w2);
-    scaleMat[1][1] = 1.f / (far * h2);
-    scaleMat[2][2] = 1.f / far;
-    projMatrix = clip * unhinge * scaleMat;
-
+/**
+ * @brief returns view matrix
+ * @return
+ */
+glm::mat4 Camera::getViewMatrix() const {
+    return viewMatrix;
 }
 
-void Camera::setPV() {
-    pv = projMatrix * viewMatrix;
+/**
+ * @brief calculates inverse view matrix, set when camera is initiated
+ */
+void Camera::setInverseViewMatrix() {
+    inverseViewMatrix = glm::inverse(viewMatrix);
 }
 
+/**
+ * @brief returns inverse view matrix
+ * @return
+ */
+glm::mat4 Camera::getInverseViewMatrix() const {
+    return inverseViewMatrix;
+}
 
+/**
+ * @brief creates projection matrix
+ * @param aspectRatio
+ * @param far
+ * @param near
+ * @return
+ */
+glm::mat4 Camera::setProjectionMatrix(float aspectRatio, float far, float near) {
 
+    // scaling matrix
+    float widthAngle = atan(aspectRatio*tan(cameraData.heightAngle/2.f))*2.f;
+    glm::mat4 scaleMat = {(1.f/(far*tan(widthAngle/2.f))), 0.f, 0.f, 0.f,
+                          0.f, (1.f/(far*tan(cameraData.heightAngle/2.f))), 0.f, 0.f,
+                          0.f, 0.f, 1/far, 0.f,
+                          0.f, 0.f, 0.f, 1.f};
+
+   // matrix for unhinging frustum
+    float c = -near/far;
+    glm::mat4 unhingeMat = {1.f, 0.f, 0.f, 0.f,
+                            0.f, 1.f, 0.f, 0.f,
+                            0.f, 0.f, (1.f/(1.f+c)), -1.f,
+                            0.f, 0.f, (-c/(1.f+c)), 0.f};
+
+    // matrix for remapping z
+    glm::mat4 remapZMat = {1.f, 0.f, 0.f, 0.f,
+                           0.f, 1.f, 0.f, 0.f,
+                           0.f, 0.f, -2.f, 0.f,
+                           0.f, 0.f, -1.f, 1.f};
+
+    // projection matrix
+    return remapZMat*unhingeMat*scaleMat;
+}
+
+/**
+ * @brief returns height angle of camera
+ * @return
+ */
+float Camera::getHeightAngle() const {
+    return cameraData.heightAngle;
+}
+
+/**
+ * @brief set position of camera in world space
+ * @return
+ */
+void Camera::setWorldPos() {
+    glm::vec4 origin = {0.f, 0.f, 0.f, 1.f};
+    camWorldPos = inverse(viewMatrix)*origin;
+}
+
+/**
+ * @brief returns position of camera in world space
+ * @return
+ */
+glm::vec3 Camera::getWorldPos() {
+    return camWorldPos;
+}
+
+/**
+ * @brief moves camera position forward along look vector
+ * @param deltaTime
+ */
+void Camera::moveForward(float deltaTime) {
+    cameraData.pos += normalize(cameraData.look)*5.f*deltaTime;
+}
+
+/**
+ * @brief moves camera position backward along look vector
+ * @param deltaTime
+ */
+void Camera::moveBackward(float deltaTime) {
+    cameraData.pos -= normalize(cameraData.look)*5.f*deltaTime;
+}
+
+/**
+ * @brief moves camera position to the left
+ * @param deltaTime
+ */
+void Camera::moveLeft(float deltaTime) {
+    glm::vec3 perpendicularVec = cross(glm::vec3(cameraData.up), glm::vec3(cameraData.look));
+    perpendicularVec = normalize(perpendicularVec);
+    cameraData.pos += glm::vec4(perpendicularVec*5.f*deltaTime, 0.f);
+}
+
+/**
+ * @brief moves camera position to the right
+ * @param deltaTime
+ */
+void Camera::moveRight(float deltaTime) {
+    glm::vec3 perpendicularVec = cross(glm::vec3(cameraData.look), glm::vec3(cameraData.up));
+    perpendicularVec = normalize(perpendicularVec);
+    cameraData.pos += glm::vec4(perpendicularVec*5.f*deltaTime, 0.f);
+}
+
+/**
+ * @brief moves camera up along y axis
+ * @param deltaTime
+ */
+void Camera::moveUp(float deltaTime) {
+    cameraData.pos.y += 5.f*deltaTime;
+}
+
+/**
+ * @brief moves camera down along y axis
+ * @param deltaTime
+ */
+void Camera::moveDown(float deltaTime) {
+    cameraData.pos.y -= 5.f*deltaTime;
+}
+
+/**
+ * @brief rotates camera about y axis by updating look vector
+ * @param deltaX
+ */
+void Camera::rotateX(float deltaX) {
+    deltaX = deltaX*0.005f;
+
+    float cosX = cos(deltaX);
+    float sinX = sin(deltaX);
+
+    glm::vec3 col1 = {cosX, 0.f, -sinX};
+    glm::vec3 col2 = {0.f, 1.f, 0.f};
+    glm::vec3 col3 = {sinX, 0.f, cosX};
+
+    glm::mat3 rotationMat = {col1, col2, col3};
+
+    cameraData.look = glm::vec4(rotationMat*cameraData.look, 1.f);
+}
+
+/**
+ * @brief rotates camera about axis perpendicular to look and up vectors by updating look vector
+ * @param deltaY
+ */
+void Camera::rotateY(float deltaY) {
+    deltaY = deltaY*0.001f;
+    glm::vec3 axis = cross(glm::vec3(cameraData.look), glm::vec3(cameraData.up));
+
+    float cosY = cos(deltaY);
+    float sinY = sin(deltaY);
+
+    glm::vec3 col1 = {cosY+axis.x*axis.x*(1-cosY), axis.x*axis.y*(1-cosY)+axis.z*sinY, axis.x*axis.z*(1-cosY)-axis.y*sinY};
+    glm::vec3 col2 = {axis.x*axis.y*(1-cosY)-axis.z*sinY, cosY+axis.y*axis.y*(1-cosY), axis.y*axis.z*(1-cosY)+axis.x*sinY};
+    glm::vec3 col3 = {axis.x*axis.z*(1-cosY)+axis.y*sinY, axis.y*axis.z*(1-cosY)-axis.x*sinY, cosY+axis.z*axis.z*(1-cosY)};
+
+    glm::mat3 rotationMat = {col1, col2, col3};
+
+    cameraData.look = glm::vec4(rotationMat*cameraData.look, 1.f);
+}
+
+float Camera::getAspectRatio() const {
+    // Optional TODO: implement the getter or make your own design
+    throw std::runtime_error("not implemented");
+}
+
+float Camera::getFocalLength() const {
+    // Optional TODO: implement the getter or make your own design
+    throw std::runtime_error("not implemented");
+}
+
+float Camera::getAperture() const {
+    // Optional TODO: implement the getter or make your own design
+    throw std::runtime_error("not implemented");
+}

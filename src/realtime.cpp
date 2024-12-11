@@ -34,6 +34,8 @@ Realtime::Realtime(QWidget *parent)
     m_keyMap[Qt::Key_Space]   = false;
 
     // If you must use this function, do not edit anything above this
+    m_shader = 0;
+    m_texture_shader = 0;
 }
 
 void Realtime::finish() {
@@ -166,7 +168,7 @@ void Realtime::initializeGL() {
     GLint sobelYLoc = glGetUniformLocation(m_texture_shader, "sobelYKernel");
     glUniform1fv(sobelYLoc, 9, &sobelKernelY[0]);
 
-    sceneChanged();
+    sceneChanged(true);
 }
 
 void Realtime::paintGL() {
@@ -455,12 +457,16 @@ void Realtime::updateCameraSettings() {
     cameraWorldPos = camera.getWorldPos();
 }
 
-void Realtime::sceneChanged() {
+void Realtime::sceneChanged(bool first_parse) {
     renderData = *new RenderData;
 
     SceneParser::parse("/Users/anthony/Documents/2024-2025 Brown Stuff/Fall 2024/Graphics/cs1230-final-birds/resources/birthday_bird.json", renderData);
     camera = Camera(renderData.cameraData);
     updateCameraSettings();
+
+    if (first_parse) {
+        cam_start_position = camera.getWorldPos();
+    }
 
     setup.setupShapes(settings.shapeParameter1, settings.shapeParameter2);
 
@@ -548,34 +554,53 @@ void Realtime::timerEvent(QTimerEvent *event) {
     if (m_keyMap[Qt::Key_W]) {
         camera.moveForward(deltaTime);
         updateCameraSettings();
+        updateCTMs();
     }
 
     if (m_keyMap[Qt::Key_S]) {
         camera.moveBackward(deltaTime);
         updateCameraSettings();
+        updateCTMs();
     }
 
     if (m_keyMap[Qt::Key_A]) {
         camera.moveLeft(deltaTime);
         updateCameraSettings();
+        updateCTMs();
     }
 
     if (m_keyMap[Qt::Key_D]) {
         camera.moveRight(deltaTime);
         updateCameraSettings();
+        updateCTMs();
     }
 
     if (m_keyMap[Qt::Key_Space]) {
         camera.moveUp(deltaTime);
         updateCameraSettings();
+        updateCTMs();
     }
 
     if (m_keyMap[Qt::Key_Control]) {
         camera.moveDown(deltaTime);
         updateCameraSettings();
+        updateCTMs();
     }
 
     update(); // asks for a PaintGL() call to occur
+}
+
+void Realtime::updateCTMs() {
+    glm::vec3 cam_translation = cameraWorldPos - cam_start_position;
+    glm::mat4 trans_mat = glm::mat4(1,0,0,0,
+                                    0,1,0,0,
+                                    0,0,1,0,
+                                    cam_translation.x,cam_translation.y,cam_translation.z,1);
+
+    for (RenderShapeData &rsd : renderData.shapes) {
+        // std::cout << int(rsd.primitive.type) << std::endl;
+        rsd.ctm = trans_mat * rsd.original_ctm;
+    }
 }
 
 // DO NOT EDIT

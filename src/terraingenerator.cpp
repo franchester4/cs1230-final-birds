@@ -11,7 +11,7 @@ TerrainGenerator::TerrainGenerator()
   // m_wireshade = false; // TA SOLUTION
 
   // Define resolution of terrain generation
-  m_resolution = 500;
+  m_resolution = 300;
 
   // Generate random vector lookup table
   m_lookupSize = 1024;

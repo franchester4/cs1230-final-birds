@@ -45,6 +45,7 @@ void buildCTM(SceneNode &node, glm::mat4 parentTransformations, std::vector<Rend
         RenderShapeData shape;
         shape.primitive = *node.primitives[j];
         shape.ctm = ctm;
+        shape.original_ctm;
 
         shapes.push_back(shape);
     }

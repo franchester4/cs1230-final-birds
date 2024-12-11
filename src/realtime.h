@@ -22,7 +22,7 @@ class Realtime : public QOpenGLWidget
 public:
     Realtime(QWidget *parent = nullptr);
     void finish();                                      // Called on program exit
-    void sceneChanged();
+    void sceneChanged(bool first_parse);
     void settingsChanged();
     void saveViewportImage(std::string filePath);
 
@@ -104,9 +104,9 @@ private:
     GLuint m_terrain_shader;
     std::vector<float> m_terrainData;
     struct tmd {
-        glm::mat4 ctm = glm::mat4(10,0,0,0,
-                                  0,10,0,0,
-                                  0,0,10,0,
+        glm::mat4 ctm = glm::mat4(75,0,0,0,
+                                  0,100,0,0,
+                                  0,0,75,0,
                                   0,0,0,1);
         glm::mat4 invCtm = glm::inverse(glm::transpose(ctm));
         glm::vec3 ambient = glm::vec3(0.5,0.5,0.5);
@@ -116,6 +116,8 @@ private:
     };
     tmd m_terrainMetaData;
 
-    RenderData m_startupData;
+    glm::vec3 cam_start_position;
+    float cam_rotation;
+    void updateCTMs();
 };
 

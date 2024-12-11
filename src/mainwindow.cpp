@@ -287,7 +287,7 @@ void MainWindow::onUploadFile() {
 
     std::cout << "Loaded scenefile: \"" << configFilePath.toStdString() << "\"." << std::endl;
 
-    realtime->sceneChanged();
+    realtime->sceneChanged(false);
 }
 
 void MainWindow::onSaveImage() {

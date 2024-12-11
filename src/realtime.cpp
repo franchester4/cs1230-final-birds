@@ -398,11 +398,15 @@ void Realtime::paintGeometry() {
 
     glUniformMatrix3fv(glGetUniformLocation(m_shader, "invTransMat"), 1, GL_FALSE, &m_terrainMetaData.invCtm[0][0]);
 
-    glUniform4fv(glGetUniformLocation(m_shader, "material_a"), 1, &m_terrainMetaData.ambient[0]);
+    // pass in mvp matrix as uniform
+    glm::mat4 mvpMat = m_proj*m_view*m_terrainMetaData.ctm;
+    glUniformMatrix4fv(glGetUniformLocation(m_shader, "mvp"), 1, GL_FALSE, &mvpMat[0][0]);
 
-    glUniform4fv(glGetUniformLocation(m_shader, "material_d"), 1, &m_terrainMetaData.diffuse[0]);
+    glUniform3fv(glGetUniformLocation(m_shader, "material_a"), 1, &m_terrainMetaData.ambient[0]);
 
-    glUniform4fv(glGetUniformLocation(m_shader, "material_s"), 1, &m_terrainMetaData.specular[0]);
+    glUniform3fv(glGetUniformLocation(m_shader, "material_d"), 1, &m_terrainMetaData.diffuse[0]);
+
+    glUniform3fv(glGetUniformLocation(m_shader, "material_s"), 1, &m_terrainMetaData.specular[0]);
 
     glUniform1fv(glGetUniformLocation(m_shader, "shininess"), 1, &m_terrainMetaData.shininess);
 

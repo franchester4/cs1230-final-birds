@@ -47,7 +47,7 @@
       ],
       "lights": [
         {
-          "type": "directional",
+          "type": "point",
           "color": [
             1,
             1,

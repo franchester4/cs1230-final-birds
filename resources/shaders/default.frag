@@ -107,4 +107,5 @@ void main() {
             fragColor += lighting;
         }
     }
+    // fragColor = vec4(abs(worldNorm), 1.0);
 }

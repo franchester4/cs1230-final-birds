@@ -452,7 +452,7 @@ void Realtime::updateCameraSettings() {
     camera.setWorldPos();
     camera.setInverseViewMatrix();
 
-    m_proj = camera.setProjectionMatrix(aspectRatio, settings.farPlane, settings.nearPlane);
+    m_proj = camera.setProjectionMatrix(aspectRatio, 100, settings.nearPlane);
     m_view = camera.getViewMatrix();
     cameraWorldPos = camera.getWorldPos();
 }
@@ -463,11 +463,6 @@ void Realtime::sceneChanged(bool first_parse) {
     SceneParser::parse("/resources/birthday_bird.json", renderData);
     camera = Camera(renderData.cameraData);
     updateCameraSettings();
-
-    if (first_parse) {
-        cam_start_position = camera.getWorldPos();
-    }
-
     setup.setupShapes(settings.shapeParameter1, settings.shapeParameter2);
 
     update(); // asks for a PaintGL() call to occur
@@ -536,11 +531,12 @@ void Realtime::mouseMoveEvent(QMouseEvent *event) {
 
         // Use deltaX and deltaY here to rotate
         camera.rotateX(deltaX*0.005f);
-        camera.rotateY(deltaY*0.001f);
-        cam_x_rotation += deltaX*0.005f;
-        cam_y_rotation += deltaY*0.001f;
+
+        // camera.rotateY(deltaY*0.001f);
+        // cam_y_rotation += deltaY*0.001f;
 
         updateCameraSettings();
+        updateCTMs();
 
         update(); // asks for a PaintGL() call to occur
     }
@@ -593,15 +589,8 @@ void Realtime::timerEvent(QTimerEvent *event) {
 }
 
 void Realtime::updateCTMs() {
-    glm::vec3 cam_translation = cameraWorldPos - cam_start_position;
-    glm::mat4 trans_mat = glm::mat4(1,0,0,0,
-                                    0,1,0,0,
-                                    0,0,1,0,
-                                    cam_translation.x,cam_translation.y,cam_translation.z,1);
-
     for (RenderShapeData &rsd : renderData.shapes) {
-        // std::cout << int(rsd.primitive.type) << std::endl;
-        rsd.ctm = trans_mat * rsd.original_ctm;
+        camera.updateCTMs(rsd);
     }
 }
 

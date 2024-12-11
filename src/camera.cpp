@@ -20,6 +20,7 @@ Camera::Camera(const SceneCameraData &data) {
     this->setViewMatrix();
     this->setInverseViewMatrix();
     this->setWorldPos();
+    cam_start_position = getWorldPos();
 }
 
 /**
@@ -179,6 +180,7 @@ void Camera::moveDown(float deltaTime) {
  * @param deltaX
  */
 void Camera::rotateX(float deltaX) {
+    cam_x_rotation += deltaX;
     float cosX = cos(deltaX);
     float sinX = sin(deltaX);
 
@@ -223,4 +225,33 @@ float Camera::getFocalLength() const {
 float Camera::getAperture() const {
     // Optional TODO: implement the getter or make your own design
     throw std::runtime_error("not implemented");
+}
+
+void Camera::updateCTMs(RenderShapeData &rsd) {
+    glm::vec3 cam_translation = getWorldPos() - cam_start_position;
+    glm::mat4 trans_mat = glm::mat4(1,0,0,0,
+                                    0,1,0,0,
+                                    0,0,1,0,
+                                    cam_translation.x,cam_translation.y,cam_translation.z,1);
+
+    //translate object with camera
+    rsd.ctm = trans_mat * rsd.original_ctm;
+
+    glm::vec4 x_rot_axis = getViewMatrix() * glm::vec4(0,1,0,0);
+    glm::mat4 rotation_mat = getRotationAboutAxis(cam_x_rotation, x_rot_axis);
+
+    //put CTM into camera space, rotate, then put back into world space.
+    rsd.ctm = getInverseViewMatrix() * rotation_mat * getViewMatrix() * rsd.ctm;
+}
+
+glm::mat4 Camera::getRotationAboutAxis(float angle, glm::vec4 axis) {
+    float cosY = cos(angle);
+    float sinY = sin(angle);
+
+    glm::vec4 col1 = {cosY+axis.x*axis.x*(1-cosY), axis.x*axis.y*(1-cosY)+axis.z*sinY, axis.x*axis.z*(1-cosY)-axis.y*sinY, 0.f};
+    glm::vec4 col2 = {axis.x*axis.y*(1-cosY)-axis.z*sinY, cosY+axis.y*axis.y*(1-cosY), axis.y*axis.z*(1-cosY)+axis.x*sinY, 0.f};
+    glm::vec4 col3 = {axis.x*axis.z*(1-cosY)+axis.y*sinY, axis.y*axis.z*(1-cosY)-axis.x*sinY, cosY+axis.z*axis.z*(1-cosY), 0.f};
+
+    glm::mat4 rotationMat = {col1, col2, col3, glm::vec4(0,0,0,1)};
+    return rotationMat;
 }

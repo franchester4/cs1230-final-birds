@@ -2,6 +2,8 @@
 
 #include <glm/glm.hpp>
 
+#include <utils/sceneparser.h>
+
 #include "utils/scenedata.h"
 
 // A class representing a virtual camera.
@@ -59,5 +61,13 @@ public:
     void moveDown(float deltaTime);
     void rotateX(float deltaX);
     void rotateY(float deltaY);
+
+
+    glm::vec3 cam_start_position;
+    float cam_x_rotation;
+    float cam_y_rotation;
+    void updateCTMs(RenderShapeData& rsd);
+    glm::mat4 getRotationAboutAxis(float angle, glm::vec4 axis);
+
 };
 

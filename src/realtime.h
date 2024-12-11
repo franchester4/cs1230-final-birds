@@ -3,7 +3,6 @@
 // Defined before including GLEW to suppress deprecation messages on macOS
 #include "camera.h"
 #include "setup.h"
-#include "utils/sceneparser.h"
 #ifdef __APPLE__
 #define GL_SILENCE_DEPRECATION
 #endif
@@ -115,10 +114,6 @@ private:
         float shininess = 10;
     };
     tmd m_terrainMetaData;
-
-    glm::vec3 cam_start_position;
-    float cam_x_rotation;
-    float cam_y_rotation;
     void updateCTMs();
 };
 

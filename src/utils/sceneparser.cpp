@@ -48,7 +48,7 @@ void buildCTM(SceneNode &node, glm::mat4 parentTransformations, std::vector<Rend
         RenderShapeData shape;
         shape.primitive = *node.primitives[j];
         shape.ctm = ctm;
-        shape.original_ctm;
+        shape.original_ctm = ctm;
 
         shapes.push_back(shape);
     }
@@ -84,7 +84,6 @@ void buildCTM(SceneNode &node, glm::mat4 parentTransformations, std::vector<Rend
 bool SceneParser::parse(std::string filepath, RenderData &renderData) {
     std::string currentPath = std::filesystem::current_path().string();
     filepath = currentPath + filepath;
-    std::cout << filepath << std::endl;
     ScenefileReader fileReader = ScenefileReader(filepath);
     bool success = fileReader.readJSON();
     if (!success) {

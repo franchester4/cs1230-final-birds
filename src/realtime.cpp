@@ -535,8 +535,10 @@ void Realtime::mouseMoveEvent(QMouseEvent *event) {
         m_prev_mouse_pos = glm::vec2(posX, posY);
 
         // Use deltaX and deltaY here to rotate
-        camera.rotateX(deltaX);
-        camera.rotateY(deltaY);
+        camera.rotateX(deltaX*0.005f);
+        camera.rotateY(deltaY*0.001f);
+        cam_x_rotation += deltaX*0.005f;
+        cam_y_rotation += deltaY*0.001f;
 
         updateCameraSettings();
 

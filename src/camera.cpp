@@ -179,8 +179,6 @@ void Camera::moveDown(float deltaTime) {
  * @param deltaX
  */
 void Camera::rotateX(float deltaX) {
-    deltaX = deltaX*0.005f;
-
     float cosX = cos(deltaX);
     float sinX = sin(deltaX);
 
@@ -198,7 +196,6 @@ void Camera::rotateX(float deltaX) {
  * @param deltaY
  */
 void Camera::rotateY(float deltaY) {
-    deltaY = deltaY*0.001f;
     glm::vec3 axis = cross(glm::vec3(cameraData.look), glm::vec3(cameraData.up));
 
     float cosY = cos(deltaY);

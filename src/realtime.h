@@ -107,7 +107,7 @@ private:
         glm::mat4 ctm = glm::mat4(75,0,0,0,
                                   0,75,0,0,
                                   0,0,75,0,
-                                  -50,-50,-50,1);
+                                  -32,-32,-32,1);
         glm::mat4 invCtm = glm::inverse(glm::transpose(ctm));
         glm::vec3 ambient = glm::vec3(0.5,0.5,0.5);
         glm::vec3 diffuse = glm::vec3(0.5,0.5,0.5);
@@ -117,7 +117,8 @@ private:
     tmd m_terrainMetaData;
 
     glm::vec3 cam_start_position;
-    float cam_rotation;
+    float cam_x_rotation;
+    float cam_y_rotation;
     void updateCTMs();
 };
 

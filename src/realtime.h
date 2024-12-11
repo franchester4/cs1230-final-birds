@@ -105,9 +105,9 @@ private:
     std::vector<float> m_terrainData;
     struct tmd {
         glm::mat4 ctm = glm::mat4(75,0,0,0,
-                                  0,100,0,0,
+                                  0,75,0,0,
                                   0,0,75,0,
-                                  0,0,0,1);
+                                  -50,-50,-50,1);
         glm::mat4 invCtm = glm::inverse(glm::transpose(ctm));
         glm::vec3 ambient = glm::vec3(0.5,0.5,0.5);
         glm::vec3 diffuse = glm::vec3(0.5,0.5,0.5);

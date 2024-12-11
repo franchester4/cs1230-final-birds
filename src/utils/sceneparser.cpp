@@ -1,9 +1,12 @@
 #include "sceneparser.h"
 #include "scenefilereader.h"
+#include <filesystem>
 #include <glm/gtx/transform.hpp>
 
 #include <chrono>
 #include <iostream>
+
+#include <__filesystem/path.h>
 
 
 glm::mat4 transformationMatrix(SceneTransformation &transformation) {
@@ -79,7 +82,9 @@ void buildCTM(SceneNode &node, glm::mat4 parentTransformations, std::vector<Rend
 }
 
 bool SceneParser::parse(std::string filepath, RenderData &renderData) {
-
+    std::string currentPath = std::filesystem::current_path().string();
+    filepath = currentPath + filepath;
+    std::cout << filepath << std::endl;
     ScenefileReader fileReader = ScenefileReader(filepath);
     bool success = fileReader.readJSON();
     if (!success) {

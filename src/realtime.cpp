@@ -150,6 +150,7 @@ void Realtime::initializeGL() {
     glBindVertexArray(0);
 
     makeFBO();
+    makeTerrainData();
 
     // initialize sharpen kernel and pass as uniform to texture shader
     float sum = 0.f;
@@ -164,6 +165,8 @@ void Realtime::initializeGL() {
     sobelKernelY = {-1.f, -2.f, -1.f, 0.f, 0.f, 0.f, 1.f, 2.f, 1.f};
     GLint sobelYLoc = glGetUniformLocation(m_texture_shader, "sobelYKernel");
     glUniform1fv(sobelYLoc, 9, &sobelKernelY[0]);
+
+    sceneChanged();
 }
 
 void Realtime::paintGL() {
@@ -220,6 +223,31 @@ void Realtime::makeFBO() {
 
     // unbind the FBO
     glBindFramebuffer(GL_FRAMEBUFFER, m_defaultFBO);
+}
+
+void Realtime::makeTerrainData() {
+    //Load Sphere Data VBO/VAO
+    glGenBuffers(1, &m_terrainVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, m_terrainVBO);
+    // Generate sphere data
+    m_terrainData = m_terrain.generateTerrain();
+    // Send data to VBO
+    glBufferData(GL_ARRAY_BUFFER, m_terrainData.size() * sizeof(GLfloat), m_terrainData.data(), GL_STATIC_DRAW);
+    // Generate, and bind vao
+    glGenVertexArrays(1, &m_terrainVAO);
+    glBindVertexArray(m_terrainVAO);
+
+    // Enable and define attribute 0 to store vertex positions
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,6 * sizeof(GLfloat),reinterpret_cast<void *>(0));
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,6 * sizeof(GLfloat),reinterpret_cast<void *>(3 * sizeof(GLfloat)));
+    // verifyVAO(m_terrainData, 0,3,6 * sizeof(GLfloat),reinterpret_cast<void *>(0));
+    // verifyVAO(m_terrainData, 1,3,6 * sizeof(GLfloat),reinterpret_cast<void *>(3 * sizeof(GLfloat)));
+
+    // Clean-up bindings
+    glBindBuffer(GL_ARRAY_BUFFER,0);
+    glBindVertexArray(0);
 }
 
 /**
@@ -336,7 +364,6 @@ void Realtime::paintGeometry() {
 
     // loop through shapes and pass in needed uniforms
     for (int i = 0; i < renderData.shapes.size(); i++) {
-
         RenderShapeData shapeData = renderData.shapes[i];
 
         // bind vao depending on shape type
@@ -365,6 +392,29 @@ void Realtime::paintGeometry() {
         // unbind vertex array
         glBindVertexArray(0);
     }
+
+    //Rendering terrain:
+    glUniformMatrix4fv(glGetUniformLocation(m_shader, "m_model"), 1, GL_FALSE, &m_terrainMetaData.ctm[0][0]);
+
+    glUniformMatrix3fv(glGetUniformLocation(m_shader, "invTransMat"), 1, GL_FALSE, &m_terrainMetaData.invCtm[0][0]);
+
+    glUniform4fv(glGetUniformLocation(m_shader, "material_a"), 1, &m_terrainMetaData.ambient[0]);
+
+    glUniform4fv(glGetUniformLocation(m_shader, "material_d"), 1, &m_terrainMetaData.diffuse[0]);
+
+    glUniform4fv(glGetUniformLocation(m_shader, "material_s"), 1, &m_terrainMetaData.specular[0]);
+
+    glUniform1fv(glGetUniformLocation(m_shader, "shininess"), 1, &m_terrainMetaData.shininess);
+
+    // Bind Shape Vertex Data
+    glBindVertexArray(m_terrainVAO);
+
+    glDrawArrays(GL_TRIANGLES, 0, m_terrainData.size()/6);
+
+    // Task 18: Unbind your VAO here
+    glBindVertexArray(0);
+
+
 
     // deactivate the shader program by passing 0 into glUseProgram
     glUseProgram(0);
@@ -404,7 +454,7 @@ void Realtime::updateCameraSettings() {
 void Realtime::sceneChanged() {
     renderData = *new RenderData;
 
-    SceneParser::parse(settings.sceneFilePath, renderData);
+    SceneParser::parse("/Users/anthony/Documents/2024-2025 Brown Stuff/Fall 2024/Graphics/cs1230-final-birds/resources/birthday_bird.json", renderData);
     camera = Camera(renderData.cameraData);
     updateCameraSettings();
 
@@ -415,7 +465,7 @@ void Realtime::sceneChanged() {
 
 void Realtime::settingsChanged() {
 
-    if (settings.sceneFilePath != "" && m_shader != 0) {
+    if (m_shader != 0) {
 
         // only update camera when near or far plane is changed
         if (settings.nearPlane != currNear) {

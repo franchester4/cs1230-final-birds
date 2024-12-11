@@ -15,6 +15,7 @@
 #include <QOpenGLWidget>
 #include <QTime>
 #include <QTimer>
+#include "terraingenerator.h"
 
 class Realtime : public QOpenGLWidget
 {
@@ -25,6 +26,7 @@ public:
     void settingsChanged();
     void saveViewportImage(std::string filePath);
 
+    void makeTerrainData();
 public slots:
     void tick(QTimerEvent* event);                      // Called once per tick of m_timer
 
@@ -95,5 +97,22 @@ private:
     std::vector<float> sobelKernelY;
 
     float aspectRatio;
+
+    TerrainGenerator m_terrain = TerrainGenerator();
+    GLuint m_terrainVBO;
+    GLuint m_terrainVAO;
+    GLuint m_terrain_shader;
+    std::vector<float> m_terrainData;
+    struct tmd {
+        glm::mat4 ctm = glm::mat4(10,0,0,0,0,10,0,0,0,0,10,0,0,0,0,1);
+        glm::mat4 invCtm = glm::inverse(ctm);
+        glm::vec4 ambient = glm::vec4(1,1,1,1);
+        glm::vec4 diffuse = glm::vec4(1,1,1,1);
+        glm::vec4 specular = glm::vec4(1,1,1,1);
+        float shininess = 10;
+    };
+    tmd m_terrainMetaData;
+
+    RenderData m_startupData;
 };
 

@@ -454,7 +454,7 @@ void Realtime::updateCameraSettings() {
     camera.setWorldPos();
     camera.setInverseViewMatrix();
 
-    m_proj = camera.setProjectionMatrix(aspectRatio, 100, settings.nearPlane);
+    m_proj = camera.setProjectionMatrix(aspectRatio, 10000, settings.nearPlane);
     m_view = camera.getViewMatrix();
     cameraWorldPos = camera.getWorldPos();
 }
@@ -598,7 +598,7 @@ void Realtime::timerEvent(QTimerEvent *event) {
     camera.incrementAngles(theta1, theta2);
 
     bezier.updatePoints(theta1, theta2);
-    updateCTMs();
+    // updateCTMs(tran);
 
 
     update(); // asks for a PaintGL() call to occur

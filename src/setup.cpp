@@ -167,10 +167,10 @@ void Setup::setupCone(int param1, int param2) {
  * @param param2
  */
 void Setup::setupShapes(int param1, int param2) {
-    setupSphere(settings.shapeParameter1, settings.shapeParameter2);
-    setupCube(settings.shapeParameter1, settings.shapeParameter2);
-    setupCylinder(settings.shapeParameter1, settings.shapeParameter2);
-    setupCone(settings.shapeParameter1, settings.shapeParameter2);
+    setupSphere(50,50);
+    setupCube(50,50);
+    setupCylinder(50,50);
+    setupCone(50,50);
 }
 
 /**

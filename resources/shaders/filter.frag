@@ -88,6 +88,7 @@ vec4 sobelConvolve(float[9] sobelKernel) {
 void main()
 {
 
+    // isSobelFilter = true;
     // sharpen if kernel filter selected
     if (isKernelFilter) {
         fragColor = sharpenFilter();
@@ -110,31 +111,29 @@ void main()
     if (isGrayscaleFilter) {
         fragColor = grayscale(fragColor);
     }
+    vec4 sobelEdgeX = sobelConvolve(sobelXKernel);
+    vec4 sobelEdgeY = sobelConvolve(sobelYKernel);
 
-    if (isSobelFilter) {
-        vec4 sobelEdgeX = sobelConvolve(sobelXKernel);
-        vec4 sobelEdgeY = sobelConvolve(sobelYKernel);
+    float gRValue = sqrt(sobelEdgeX.r*sobelEdgeX.r + sobelEdgeY.r*sobelEdgeY.r);
+    float gGValue = sqrt(sobelEdgeX.g*sobelEdgeX.g + sobelEdgeY.g*sobelEdgeY.g);
+    float gBValue = sqrt(sobelEdgeX.b*sobelEdgeX.b + sobelEdgeY.b*sobelEdgeY.b);
 
-        float gRValue = sqrt(sobelEdgeX.r*sobelEdgeX.r + sobelEdgeY.r*sobelEdgeY.r);
-        float gGValue = sqrt(sobelEdgeX.g*sobelEdgeX.g + sobelEdgeY.g*sobelEdgeY.g);
-        float gBValue = sqrt(sobelEdgeX.b*sobelEdgeX.b + sobelEdgeY.b*sobelEdgeY.b);
+    gRValue = clamp(gRValue, 0.f, 1.f);
+    gGValue = clamp(gGValue, 0.f, 1.f);
+    gBValue = clamp(gBValue, 0.f, 1.f);
 
-        gRValue = clamp(gRValue, 0.f, 1.f);
-        gGValue = clamp(gGValue, 0.f, 1.f);
-        gBValue = clamp(gBValue, 0.f, 1.f);
+    //vec3 sobel = sqrt(vec3(sobelEdgeX)*vec3(sobelEdgeX) + vec3(sobelEdgeY)*vec3(sobelEdgeY));
+    vec4 sobel = vec4(gRValue, gGValue, gBValue, 1.f);
+    sobel = grayscale(sobel);
 
-        //vec3 sobel = sqrt(vec3(sobelEdgeX)*vec3(sobelEdgeX) + vec3(sobelEdgeY)*vec3(sobelEdgeY));
-        vec4 sobel = vec4(gRValue, gGValue, gBValue, 1.f);
-        sobel = grayscale(sobel);
+    float edgeThreshold = 0.4;
 
-        float edgeThreshold = 0.4;
-
-        if (sobel.r > edgeThreshold) {
-            // add black outline
-                fragColor = vec4(0.0, 0.0, 0.0, 1.0);
-            } else {
-                fragColor = texture(textureUniform, uvcoords);
-        }
+    if (sobel.r > edgeThreshold) {
+        // add black outline
+            fragColor = vec4(0.0, 0.0, 0.0, 1.0);
+        } else {
+            fragColor = texture(textureUniform, uvcoords);
     }
+
 }
 

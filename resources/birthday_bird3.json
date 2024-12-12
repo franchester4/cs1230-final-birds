@@ -1,0 +1,409 @@
+{
+  
+  "name": "default",
+  "globalData": {
+    "ambientCoeff": 1,
+    "diffuseCoeff": 1,
+    "specularCoeff": 1,
+    "transparentCoeff": 0
+  },
+  "cameraData": {
+    "position": [
+      -5.985370512815976,
+      0.00023377608838259345,
+      0.0065619563955924085
+    ],
+    "up": [
+      0.00003905786730110238,
+      0.9999999992372405,
+      -4.282040989844749e-8
+    ],
+    "heightAngle": 45,
+    "look": [
+      0.9999993982652748,
+      -0.00003905789077379917,
+      -0.0010963318701017824
+    ]
+  },
+  "groups": [
+    {
+      "name": "light",
+      "lights": [
+        {
+          "color": [
+            1,
+            1,
+            1
+          ],
+          "type": "point",
+          "attenuationCoeff": [
+            0,
+            0,
+            0
+          ]}
+      ],
+      "translate": [
+        2.46,
+        64.42,
+        0
+      ],
+      "rotate": [
+        0,
+        1,
+        0,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ]},
+    {
+      "name": "tail",
+      "primitives": [
+        {
+          "ambient": [
+            0.5,
+            0.5,
+            0.5
+          ],
+          "diffuse": [
+            1,
+            1,
+            1
+          ],
+          "specular": [
+            1,
+            1,
+            1
+          ],
+          "shininess": 1,
+          "type": "cone"}
+      ],
+      "translate": [
+        -0.4,
+        0.83,
+        0
+      ],
+      "rotate": [
+        0,
+        0,
+        39,
+        -59
+      ],
+      "scale": [
+        0.12,
+        0.94,
+        0.4
+      ]},
+    {
+      "name": "legs",
+      "primitives": [
+        {
+          "ambient": [
+            0.5,
+            0.5,
+            0.5
+          ],
+          "diffuse": [
+            1,
+            1,
+            1
+          ],
+          "specular": [
+            1,
+            1,
+            1
+          ],
+          "shininess": 1,
+          "type": "cylinder"}
+      ],
+      "translate": [
+        0.02,
+        0.45,
+        -0.12
+      ],
+      "rotate": [
+        0,
+        1,
+        0,
+        0
+      ],
+      "scale": [
+        0.1,
+        0.25,
+        0.1
+      ],
+      "groups": [
+        {
+          "name": "feet",
+          "primitives": [
+            {
+              "ambient": [
+                0.5,
+                0.5,
+                0.5
+              ],
+              "diffuse": [
+                1,
+                1,
+                1
+              ],
+              "specular": [
+                1,
+                1,
+                1
+              ],
+              "shininess": 1,
+              "type": "cube"}
+          ],
+          "translate": [
+            0.54,
+            -0.42,
+            0
+          ],
+          "rotate": [
+            0,
+            1,
+            0,
+            0
+          ],
+          "scale": [
+            1.39,
+            0.15,
+            1.03
+          ],
+          "groups": [
+            {
+              "name": "foot2",
+              "primitives": [
+                {
+                  "ambient": [
+                    0.5,
+                    0.5,
+                    0.5
+                  ],
+                  "diffuse": [
+                    1,
+                    1,
+                    1
+                  ],
+                  "specular": [
+                    1,
+                    1,
+                    1
+                  ],
+                  "shininess": 1,
+                  "type": "cube"}
+              ],
+              "translate": [
+                0,
+                0,
+                2.23
+              ],
+              "rotate": [
+                0,
+                1,
+                0,
+                0
+              ],
+              "scale": [
+                1,
+                1,
+                1
+              ]}
+          ]},
+        {
+          "name": "leg2",
+          "primitives": [
+            {
+              "ambient": [
+                0.5,
+                0.5,
+                0.5
+              ],
+              "diffuse": [
+                1,
+                1,
+                1
+              ],
+              "specular": [
+                1,
+                1,
+                1
+              ],
+              "shininess": 1,
+              "type": "cylinder"}
+          ],
+          "translate": [
+            -0.37,
+            -0.01,
+            2.29
+          ],
+          "rotate": [
+            0,
+            1,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]}
+      ]},
+    {
+      "name": "hat",
+      "primitives": [
+        {
+          "ambient": [
+            0.81,
+            0.5,
+            0.69
+          ],
+          "diffuse": [
+            0.79,
+            0,
+            1
+          ],
+          "specular": [
+            1,
+            0.45,
+            1
+          ],
+          "shininess": 8,
+          "type": "cone"}
+      ],
+      "translate": [
+        -0.01,
+        1.54,
+        0
+      ],
+      "rotate": [
+        34,
+        -42,
+        -3,
+        0
+      ],
+      "scale": [
+        0.41,
+        0.42,
+        0.37
+      ]},
+    {
+      "name": "eyes",
+      "primitives": [
+        {
+          "ambient": [
+            0,
+            0,
+            0
+          ],
+          "diffuse": [
+            0.45,
+            0.42,
+            0.42
+          ],
+          "specular": [
+            0.98,
+            1,
+            1
+          ],
+          "shininess": 10,
+          "type": "sphere"}
+      ],
+      "translate": [
+        0.1,
+        1.06,
+        0
+      ],
+      "rotate": [
+        0,
+        1,
+        0,
+        0
+      ],
+      "scale": [
+        0.35,
+        0.31,
+        0.83
+      ],
+      "groups": []},
+    {
+      "name": "Beak",
+      "primitives": [
+        {
+          "ambient": [
+            0.46,
+            0.5,
+            0.5
+          ],
+          "diffuse": [
+            1,
+            1,
+            1
+          ],
+          "specular": [
+            0.6,
+            1,
+            1
+          ],
+          "shininess": 8,
+          "type": "cone"}
+      ],
+      "translate": [
+        0.64,
+        0.95,
+        0
+      ],
+      "rotate": [
+        0,
+        0,
+        165,
+        -81
+      ],
+      "scale": [
+        0.27,
+        0.48,
+        0.31
+      ]},
+    {
+      "name": "Primitives",
+      "primitives": [
+        {
+          "ambient": [
+            0,
+            0.33,
+            1
+          ],
+          "diffuse": [
+            0.46,
+            1,
+            0.52
+          ],
+          "specular": [
+            0,
+            0,
+            0
+          ],
+          "shininess": 0,
+          "type": "sphere"}
+      ],
+      "translate": [
+        0,
+        0.94,
+        0
+      ],
+      "rotate": [
+        44,
+        -32,
+        61,
+        -2
+      ],
+      "scale": [
+        1.04,
+        0.87,
+        0.76
+      ]}
+  ]
+}

@@ -268,10 +268,10 @@ void Realtime::paintTexture(GLuint texture, bool isPixelFilter, bool isKernelFil
     glUniform1i(glGetUniformLocation(m_texture_shader, "isKernelFilter"), isKernelFilter);
     glUniform1i(glGetUniformLocation(m_texture_shader, "isBlurFilter"), isExtraCredit1);
     glUniform1i(glGetUniformLocation(m_texture_shader, "isGrayscaleFilter"), isExtraCredit2);
-    glUniform1i(glGetUniformLocation(m_texture_shader, "isSobelFilter"), isExtraCredit3);
+    glUniform1i(glGetUniformLocation(m_texture_shader, "isSobelFilter"), true);
 
     // if kernel filter selected, pass in fbo width and height
-    if (isKernelFilter || isExtraCredit1) {
+    if (isKernelFilter || true) {
         glUniform1f(glGetUniformLocation(m_texture_shader, "fboWidth"), float(m_fbo_width));
         glUniform1f(glGetUniformLocation(m_texture_shader, "fboHeight"), float(m_fbo_height));
     }
@@ -466,7 +466,7 @@ void Realtime::sceneChanged(bool first_parse) {
     camera = Camera(renderData.cameraData);
     updateCameraSettings();
     bezier.init(glm::vec4(camera.cam_start_position, 0.f), camera.getLook());
-    setup.setupShapes(settings.shapeParameter1, settings.shapeParameter2);
+    setup.setupShapes(50,50);
 
     update(); // asks for a PaintGL() call to occur
 }
@@ -488,13 +488,13 @@ void Realtime::settingsChanged() {
 
         // only update shape vbo when parameters are changed
         if (settings.shapeParameter1 != currParam1) {
-            currParam1 = settings.shapeParameter1;
-            setup.setupShapes(settings.shapeParameter1, settings.shapeParameter2);
+            currParam1 = 50;
+            setup.setupShapes(50,50);
         }
 
         if (settings.shapeParameter2 != currParam2) {
-            currParam2 = settings.shapeParameter2;
-            setup.setupShapes(settings.shapeParameter1, settings.shapeParameter2);
+            currParam2 = 50;
+            setup.setupShapes(50,50);
         }
     }
 

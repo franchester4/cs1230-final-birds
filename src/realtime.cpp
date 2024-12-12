@@ -538,6 +538,7 @@ void Realtime::mouseMoveEvent(QMouseEvent *event) {
         // // camera.rotateY(deltaY*0.001f);
         // // cam_y_rotation += deltaY*0.001f;
 
+
         // updateCameraSettings();
         // updateCTMs();
 

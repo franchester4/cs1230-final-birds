@@ -21,6 +21,8 @@ Camera::Camera(const SceneCameraData &data) {
     this->setInverseViewMatrix();
     this->setWorldPos();
     cam_start_position = getWorldPos();
+    cam_x_rotation = 0;
+    cam_y_rotation = 0;
 }
 
 /**
@@ -198,6 +200,8 @@ void Camera::rotateX(float deltaX) {
  * @param deltaY
  */
 void Camera::rotateY(float deltaY) {
+    cam_y_rotation += deltaY;
+
     glm::vec3 axis = cross(glm::vec3(cameraData.look), glm::vec3(cameraData.up));
 
     float cosY = cos(deltaY);
@@ -238,10 +242,14 @@ void Camera::updateCTMs(RenderShapeData &rsd) {
     rsd.ctm = trans_mat * rsd.original_ctm;
 
     glm::vec4 x_rot_axis = getViewMatrix() * glm::vec4(0,1,0,0);
-    glm::mat4 rotation_mat = getRotationAboutAxis(cam_x_rotation, x_rot_axis);
+    glm::mat4 x_rotation_mat = getRotationAboutAxis(cam_x_rotation, x_rot_axis);
+    // glm::mat4 counter_rotation_mat = getRotationAboutAxis(-cam_x_rotation, glm::vec4(0,1,0,0));
+    glm::vec4 y_rot_axis = getViewMatrix() * glm::vec4(cross(glm::vec3(cameraData.look), glm::vec3(cameraData.up)),0);
+    glm::mat4 y_rotation_mat = getRotationAboutAxis(cam_y_rotation, y_rot_axis);
 
     //put CTM into camera space, rotate, then put back into world space.
-    rsd.ctm = getInverseViewMatrix() * rotation_mat * getViewMatrix() * rsd.ctm;
+    rsd.ctm = getInverseViewMatrix() * y_rotation_mat * x_rotation_mat * getViewMatrix() * rsd.ctm;
+    // rsd.ctm = rsd.ctm * counter_rotation_mat * glm::inverse(rsd.ctm) * rsd.ctm;
 }
 
 glm::mat4 Camera::getRotationAboutAxis(float angle, glm::vec4 axis) {

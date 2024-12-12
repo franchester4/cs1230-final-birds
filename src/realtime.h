@@ -105,6 +105,8 @@ private:
     GLuint m_terrainVAO;
     GLuint m_terrain_shader;
     std::vector<float> m_terrainData;
+
+    //CHANGE TERRAIN PARAMETERS HERE
     struct tmd {
         glm::mat4 ctm = glm::mat4(200,0,0,0,
                                   0,200,0,0,

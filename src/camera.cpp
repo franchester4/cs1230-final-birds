@@ -255,3 +255,13 @@ glm::mat4 Camera::getRotationAboutAxis(float angle, glm::vec4 axis) {
     glm::mat4 rotationMat = {col1, col2, col3, glm::vec4(0,0,0,1)};
     return rotationMat;
 }
+
+glm::vec3 Camera::getLook() {
+    return glm::vec3(cameraData.look);
+}
+
+void Camera::setPosAndLook(glm::vec3 p, glm::vec3 l) {
+    cameraData.pos = glm::vec4(p, 1.f);
+    setWorldPos();
+    cameraData.look = glm::vec4(l, 0.f);
+}

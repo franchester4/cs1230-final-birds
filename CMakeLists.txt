@@ -51,6 +51,7 @@ add_executable(${PROJECT_NAME}
     src/debug.h src/debug.cpp
     src/setup.h src/setup.cpp
     src/terraingenerator.h src/terraingenerator.cpp
+    src/bezier.h src/bezier.cpp
 
 
 )

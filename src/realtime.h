@@ -15,6 +15,7 @@
 #include <QTime>
 #include <QTimer>
 #include "terraingenerator.h"
+#include "bezier.h"
 
 class Realtime : public QOpenGLWidget
 {
@@ -71,6 +72,8 @@ private:
     glm::mat4 m_proj  = glm::mat4(1);
 
     Camera camera;
+
+    Bezier bezier;
 
     GLuint m_fullscreen_vbo;
     GLuint m_fullscreen_vao;

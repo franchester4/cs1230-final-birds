@@ -62,6 +62,8 @@ public:
     void rotateX(float deltaX);
     void rotateY(float deltaY);
 
+    glm::vec3 getLook();
+    void setPosAndLook(glm::vec3 p, glm::vec3 l);
 
     glm::vec3 cam_start_position;
     float cam_x_rotation;

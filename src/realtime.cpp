@@ -549,7 +549,6 @@ void Realtime::timerEvent(QTimerEvent *event) {
     int elapsedms   = m_elapsedTimer.elapsed();
     float deltaTime = elapsedms * 0.001f;
     m_elapsedTimer.restart();
-
     // BEZIER PARAMETERS
     float t = deltaTime * 0.8; // speed (smaller = slower)
     float denom = 12.f; // controls rotation speed (smaller = faster)
@@ -587,17 +586,6 @@ void Realtime::timerEvent(QTimerEvent *event) {
     }
     if (m_keyMap[Qt::Key_A]) {
         theta1 += fmin(fmax(-deltaTime * 2 * M_PI / denom, -mx), 0.f);
-    }
-    if (m_keyMap[Qt::Key_Space]) {
-        camera.moveUp(deltaTime);
-        updateCameraSettings();
-        updateCTMs();
-    }
-
-    if (m_keyMap[Qt::Key_Control]) {
-        camera.moveDown(deltaTime);
-        updateCameraSettings();
-        updateCTMs();
     }
 
     bezier.updatePoints(theta1, theta2);

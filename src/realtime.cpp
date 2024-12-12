@@ -68,6 +68,8 @@ void Realtime::initializeGL() {
     m_timer = startTimer(1000/60);
     m_elapsedTimer.start();
 
+    bezier = Bezier();
+
     // Initializing GL.
     // GLEW (GL Extension Wrangler) provides access to OpenGL functions.
     glewExperimental = GL_TRUE;
@@ -463,6 +465,7 @@ void Realtime::sceneChanged(bool first_parse) {
     SceneParser::parse("/resources/birthday_bird.json", renderData);
     camera = Camera(renderData.cameraData);
     updateCameraSettings();
+    bezier.init(glm::vec4(camera.cam_start_position, 0.f), camera.getLook());
     setup.setupShapes(settings.shapeParameter1, settings.shapeParameter2);
 
     update(); // asks for a PaintGL() call to occur
@@ -523,19 +526,21 @@ void Realtime::mouseReleaseEvent(QMouseEvent *event) {
 
 void Realtime::mouseMoveEvent(QMouseEvent *event) {
     if (m_mouseDown) {
-        int posX = event->position().x();
-        int posY = event->position().y();
-        int deltaX = posX - m_prev_mouse_pos.x;
-        int deltaY = posY - m_prev_mouse_pos.y;
-        m_prev_mouse_pos = glm::vec2(posX, posY);
+        // int posX = event->position().x();
+        // int posY = event->position().y();
+        // int deltaX = posX - m_prev_mouse_pos.x;
+        // int deltaY = posY - m_prev_mouse_pos.y;
+        // m_prev_mouse_pos = glm::vec2(posX, posY);
 
-        // Use deltaX and deltaY here to rotate
-        camera.rotateX(deltaX*0.005f);
+        // // Use deltaX and deltaY here to rotate
+        // camera.rotateX(deltaX*0.005f);
 
-        camera.rotateY(deltaY*0.001f);
+        // // camera.rotateY(deltaY*0.001f);
+        // // cam_y_rotation += deltaY*0.001f;
 
-        updateCameraSettings();
-        updateCTMs();
+
+        // updateCameraSettings();
+        // updateCTMs();
 
         update(); // asks for a PaintGL() call to occur
     }
@@ -545,44 +550,46 @@ void Realtime::timerEvent(QTimerEvent *event) {
     int elapsedms   = m_elapsedTimer.elapsed();
     float deltaTime = elapsedms * 0.001f;
     m_elapsedTimer.restart();
+    // BEZIER PARAMETERS
+    float t = deltaTime * 0.8; // speed (smaller = slower)
+    float denom = 12.f; // controls rotation speed (smaller = faster)
+    float mx = M_PI / 5.f; // max angle
+
+    // move the camera along cur bezier
+    auto cur_mat = bezier.bezierCoeffs();
+
+    auto new_pos = glm::transpose(cur_mat) * glm::vec4(pow(t, 3), pow(t, 2), t, 1);
+
+    auto new_grad = glm::transpose(cur_mat) * glm::vec4(3 * pow(t, 2), 2 * t, 1, 0);
+
+    new_grad = glm::normalize(new_grad);
+
+    camera.setPosAndLook(new_pos, new_grad);
+    updateCameraSettings();
+    updateCTMs();
+
+    bezier.pts[0] = new_pos;
+    bezier.dir = new_grad;
+
+    float theta1 = 0.f;
+    float theta2 = 0.f;
 
     // Use deltaTime and m_keyMap here to move around
-
-    if (m_keyMap[Qt::Key_W]) {
-        camera.moveForward(deltaTime);
-        updateCameraSettings();
-        updateCTMs();
+    if (m_keyMap[Qt::Key_S]) { // translate look
+        theta2 +=  fmin(fmax(deltaTime * M_PI / denom, 0.f), mx);
     }
-
-    if (m_keyMap[Qt::Key_S]) {
-        camera.moveBackward(deltaTime);
-        updateCameraSettings();
-        updateCTMs();
+    if (m_keyMap[Qt::Key_W]) { // translate look backwards
+        theta2 += fmin(fmax(-deltaTime * M_PI / denom, -mx), 0.f);
     }
-
-    if (m_keyMap[Qt::Key_A]) {
-        camera.moveLeft(deltaTime);
-        updateCameraSettings();
-        updateCTMs();
-    }
-
     if (m_keyMap[Qt::Key_D]) {
-        camera.moveRight(deltaTime);
-        updateCameraSettings();
-        updateCTMs();
+        theta1 += fmin(fmax(deltaTime * 2 * M_PI / denom, 0.f), mx);
+
+    }
+    if (m_keyMap[Qt::Key_A]) {
+        theta1 += fmin(fmax(-deltaTime * 2 * M_PI / denom, -mx), 0.f);
     }
 
-    if (m_keyMap[Qt::Key_Space]) {
-        camera.moveUp(deltaTime);
-        updateCameraSettings();
-        updateCTMs();
-    }
-
-    if (m_keyMap[Qt::Key_Control]) {
-        camera.moveDown(deltaTime);
-        updateCameraSettings();
-        updateCTMs();
-    }
+    bezier.updatePoints(theta1, theta2);
 
     update(); // asks for a PaintGL() call to occur
 }

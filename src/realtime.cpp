@@ -555,6 +555,8 @@ void Realtime::timerEvent(QTimerEvent *event) {
     float denom = 12.f; // controls rotation speed (smaller = faster)
     float mx = M_PI / 5.f; // max angle
 
+    auto old_inv = camera.getInverseViewMatrix();
+
     // move the camera along cur bezier
     auto cur_mat = bezier.bezierCoeffs();
 
@@ -566,6 +568,11 @@ void Realtime::timerEvent(QTimerEvent *event) {
 
     camera.setPosAndLook(new_pos, new_grad);
     updateCameraSettings();
+
+    auto new_inv = camera.getInverseViewMatrix();
+    auto transition = new_inv * glm::inverse(old_inv);
+    updateCTMs(transition);
+
 
     bezier.pts[0] = new_pos;
     bezier.dir = new_grad;
@@ -597,9 +604,10 @@ void Realtime::timerEvent(QTimerEvent *event) {
     update(); // asks for a PaintGL() call to occur
 }
 
-void Realtime::updateCTMs() {
+void Realtime::updateCTMs(glm::mat4& transition) {
     for (RenderShapeData &rsd : renderData.shapes) {
-        camera.updateCTMs(rsd);
+        // camera.updateCTMs(rsd, old_inv);
+        rsd.ctm = transition * rsd.ctm;
     }
 }
 

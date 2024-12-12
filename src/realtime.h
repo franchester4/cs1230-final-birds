@@ -119,6 +119,6 @@ private:
         float shininess = 3;
     };
     tmd m_terrainMetaData;
-    void updateCTMs();
+    void updateCTMs(glm::mat4& transition);
 };
 

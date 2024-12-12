@@ -38,7 +38,7 @@ glm::vec3 Bezier::moveBy(float t1, float t2) {
         return getSpherical(t1, cur_t2 + t2);
     }
     float cur_t1 = acos(fmin(1.f, fmax(-1.f, dir[0] / sin(cur_t2))));
-    if (abs(sin(cur_t1) * sin(cur_t2) - dir[2]) > 1e-1) {
+    if (abs(sin(cur_t1) * sin(cur_t2) - dir[2]) > 1e-3) {
         // adjust cur_t1 \in [0, pi]
         cur_t1 = 2 * M_PI - cur_t1;
     }

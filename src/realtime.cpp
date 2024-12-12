@@ -551,9 +551,9 @@ void Realtime::timerEvent(QTimerEvent *event) {
     m_elapsedTimer.restart();
 
     // BEZIER PARAMETERS
-    float t = deltaTime; // speed
-    float denom = 10.f; // controls rotation speed
-    float mx = 100000 * M_PI / 5.f; // max angle
+    float t = deltaTime * 0.8; // speed (smaller = slower)
+    float denom = 12.f; // controls rotation speed (smaller = faster)
+    float mx = M_PI / 5.f; // max angle
 
     // move the camera along cur bezier
     auto cur_mat = bezier.bezierCoeffs();
@@ -582,11 +582,11 @@ void Realtime::timerEvent(QTimerEvent *event) {
         theta2 += fmin(fmax(-deltaTime * M_PI / denom, -mx), 0.f);
     }
     if (m_keyMap[Qt::Key_D]) {
-        theta1 += fmin(fmax(deltaTime * M_PI / denom, 0.f), mx);
+        theta1 += fmin(fmax(deltaTime * 2 * M_PI / denom, 0.f), mx);
 
     }
     if (m_keyMap[Qt::Key_A]) {
-        theta1 += fmin(fmax(-deltaTime * M_PI / denom, -mx), 0.f);
+        theta1 += fmin(fmax(-deltaTime * 2 * M_PI / denom, -mx), 0.f);
     }
     if (m_keyMap[Qt::Key_Space]) {
         camera.moveUp(deltaTime);

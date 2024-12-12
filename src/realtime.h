@@ -106,14 +106,14 @@ private:
     GLuint m_terrain_shader;
     std::vector<float> m_terrainData;
     struct tmd {
-        glm::mat4 ctm = glm::mat4(75,0,0,0,
-                                  0,75,0,0,
-                                  0,0,75,0,
-                                  -32,-32,-32,1);
+        glm::mat4 ctm = glm::mat4(200,0,0,0,
+                                  0,200,0,0,
+                                  0,0,200,0,
+                                  -100,-60,-100,1);
         glm::mat4 invCtm = glm::inverse(glm::transpose(ctm));
-        glm::vec3 ambient = glm::vec3(0.08,0.3,0.1);
-        glm::vec3 diffuse = glm::vec3(0.3,1.0,0.5);
-        glm::vec3 specular = glm::vec3(0.4,0.5,0.5);
+        glm::vec3 ambient = glm::vec3(0.3,0.2,0.2);
+        glm::vec3 diffuse = glm::vec3(1.0,0.3,0.6);
+        glm::vec3 specular = glm::vec3(0.5,0.5,0.5);
         float shininess = 3;
     };
     tmd m_terrainMetaData;

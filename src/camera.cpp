@@ -195,6 +195,11 @@ void Camera::rotateX(float deltaX) {
     cameraData.look = glm::vec4(rotationMat*cameraData.look, 1.f);
 }
 
+void Camera::incrementAngles(float x_angle, float y_angle) {
+    cam_x_rotation += x_angle;
+    cam_y_rotation += y_angle;
+}
+
 /**
  * @brief rotates camera about axis perpendicular to look and up vectors by updating look vector
  * @param deltaY

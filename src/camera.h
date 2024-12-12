@@ -71,5 +71,6 @@ public:
     void updateCTMs(RenderShapeData& rsd);
     glm::mat4 getRotationAboutAxis(float angle, glm::vec4 axis);
 
+    void incrementAngles(float x_angle, float y_angle);
 };
 

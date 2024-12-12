@@ -23,6 +23,7 @@ Camera::Camera(const SceneCameraData &data) {
     cam_start_position = getWorldPos();
     cam_x_rotation = 0;
     cam_y_rotation = 0;
+    start_look = data.look;
 }
 
 /**
@@ -195,6 +196,11 @@ void Camera::rotateX(float deltaX) {
     cameraData.look = glm::vec4(rotationMat*cameraData.look, 1.f);
 }
 
+void Camera::incrementAngles(float x_angle, float y_angle) {
+    cam_x_rotation += x_angle;
+    cam_y_rotation += y_angle;
+}
+
 /**
  * @brief rotates camera about axis perpendicular to look and up vectors by updating look vector
  * @param deltaY
@@ -238,18 +244,39 @@ void Camera::updateCTMs(RenderShapeData &rsd) {
                                     0,0,1,0,
                                     cam_translation.x,cam_translation.y,cam_translation.z,1);
 
-    //translate object with camera
+    // translate object with camera
     rsd.ctm = trans_mat * rsd.original_ctm;
 
-    glm::vec4 x_rot_axis = getViewMatrix() * glm::vec4(0,1,0,0);
-    glm::mat4 x_rotation_mat = getRotationAboutAxis(cam_x_rotation, x_rot_axis);
-    // glm::mat4 counter_rotation_mat = getRotationAboutAxis(-cam_x_rotation, glm::vec4(0,1,0,0));
-    glm::vec4 y_rot_axis = getViewMatrix() * glm::vec4(cross(glm::vec3(cameraData.look), glm::vec3(cameraData.up)),0);
-    glm::mat4 y_rotation_mat = getRotationAboutAxis(cam_y_rotation, y_rot_axis);
+    // glm::vec4 x_rot_axis = getViewMatrix() * glm::vec4(0,1,0,0);
+    // glm::mat4 x_rotation_mat = getRotationAboutAxis(cam_x_rotation, x_rot_axis);
+    // // glm::mat4 counter_rotation_mat = getRotationAboutAxis(-cam_x_rotation, glm::vec4(0,1,0,0));
+    // glm::vec4 y_rot_axis = getViewMatrix() * glm::vec4(cross(glm::vec3(cameraData.look), glm::vec3(cameraData.up)),0);
+    // glm::mat4 y_rotation_mat = getRotationAboutAxis(cam_y_rotation, y_rot_axis);
 
-    //put CTM into camera space, rotate, then put back into world space.
-    rsd.ctm = getInverseViewMatrix() * y_rotation_mat * x_rotation_mat * getViewMatrix() * rsd.ctm;
-    // rsd.ctm = rsd.ctm * counter_rotation_mat * glm::inverse(rsd.ctm) * rsd.ctm;
+    // //put CTM into camera space, rotate, then put back into world space.
+    // rsd.ctm = getInverseViewMatrix() * y_rotation_mat * x_rotation_mat * getViewMatrix() * rsd.ctm;
+    glm::mat4 rotationMat = computeRotationMatrix(start_look, getLook());
+    rsd.ctm = getInverseViewMatrix() * rotationMat * getViewMatrix() * rsd.ctm;
+
+}
+
+glm::mat4 Camera::computeRotationMatrix(glm::vec3 A, glm::vec3 B) {
+    // rotation matrix from norm(A) to norm(B) [gets directions]
+    glm::vec3 a = glm::normalize(A);
+    glm::vec3 b = glm::normalize(B);
+    glm::vec3 v = glm::cross(a, b);
+    float cos = glm::dot(a, b);
+
+    glm::mat3 res = glm::mat3(1.0);
+
+    glm::mat3 skew = glm::mat3(
+        0, v[2], -v[1],
+        -v[2], 0, v[0],
+        v[1], -v[0], 0);
+
+    glm::mat3 mod_skew = res + skew +  (1.f /(1.f + cos)) * skew * skew;
+
+    return glm::mat4(glm::vec4(mod_skew[0], 0), glm::vec4(mod_skew[1], 0), glm::vec4(mod_skew[2], 0), glm::vec4(0,0,0,1));
 }
 
 glm::mat4 Camera::getRotationAboutAxis(float angle, glm::vec4 axis) {

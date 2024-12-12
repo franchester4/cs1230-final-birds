@@ -573,6 +573,7 @@ void Realtime::timerEvent(QTimerEvent *event) {
     auto transition = new_inv * glm::inverse(old_inv);
     updateCTMs(transition);
 
+
     bezier.pts[0] = new_pos;
     bezier.dir = new_grad;
 
@@ -594,7 +595,11 @@ void Realtime::timerEvent(QTimerEvent *event) {
         theta1 += fmin(fmax(-deltaTime * 2 * M_PI / denom, -mx), 0.f);
     }
 
+    camera.incrementAngles(theta1, theta2);
+
     bezier.updatePoints(theta1, theta2);
+    updateCTMs();
+
 
     update(); // asks for a PaintGL() call to occur
 }
@@ -642,7 +647,7 @@ void Realtime::saveViewportImage(std::string filePath) {
     // Render to the FBO
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
     glViewport(0, 0, fixedWidth, fixedHeight);
-
+    glClearColor(0.5f,1.0f,0.5f,1.0f);
     // Clear and render your scene here
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     paintGL();

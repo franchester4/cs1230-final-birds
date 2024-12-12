@@ -66,10 +66,13 @@ public:
     void setPosAndLook(glm::vec3 p, glm::vec3 l);
 
     glm::vec3 cam_start_position;
+    glm::vec3 start_look;
     float cam_x_rotation;
     float cam_y_rotation;
     void updateCTMs(RenderShapeData& rsd);
     glm::mat4 getRotationAboutAxis(float angle, glm::vec4 axis);
 
+    void incrementAngles(float x_angle, float y_angle);
+    glm::mat4 computeRotationMatrix(glm::vec3, glm::vec3);
 };
 

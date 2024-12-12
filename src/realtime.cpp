@@ -86,8 +86,8 @@ void Realtime::initializeGL() {
     // Tells OpenGL how big the screen is
     glViewport(0, 0, size().width() * m_devicePixelRatio, size().height() * m_devicePixelRatio);
 
-    // Set clear color to black
-    glClearColor(0,0,0,1);
+    // Set clear color
+    glClearColor(0.816,0.788,0.961,0.941);
 
     // Enable depth testing
     glEnable(GL_DEPTH_TEST);
